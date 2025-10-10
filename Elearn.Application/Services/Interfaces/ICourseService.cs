@@ -1,6 +1,6 @@
 ﻿using Elearn.Domain.Entities;
 
-namespace Elearn.Application.Interfaces
+namespace Elearn.Application.Services.Interfaces
 {
     public interface ICourseService
     {

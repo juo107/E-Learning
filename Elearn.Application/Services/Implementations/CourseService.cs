@@ -1,8 +1,8 @@
-﻿using Elearn.Application.Interfaces;
+﻿using Elearn.Application.Services.Interfaces;
 using Elearn.Domain.Entities;
 using Elearn.Infrastructure.Repository;
 
-namespace Elearn.Application.Services
+namespace Elearn.Application.Services.Implementations
 {
     public class CourseService : ICourseService
     {

@@ -5,6 +5,7 @@ C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Domain\obj\Debug\net9.0\Elearn.Domain.
 C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Domain\obj\Debug\net9.0\Elearn.Domain.AssemblyInfoInputs.cache
 C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Domain\obj\Debug\net9.0\Elearn.Domain.AssemblyInfo.cs
 C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Domain\obj\Debug\net9.0\Elearn.Domain.csproj.CoreCompileInputs.cache
+C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Domain\obj\Debug\net9.0\Elearn.Domain.sourcelink.json
 C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Domain\obj\Debug\net9.0\Elearn.Domain.dll
 C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Domain\obj\Debug\net9.0\refint\Elearn.Domain.dll
 C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Domain\obj\Debug\net9.0\Elearn.Domain.pdb

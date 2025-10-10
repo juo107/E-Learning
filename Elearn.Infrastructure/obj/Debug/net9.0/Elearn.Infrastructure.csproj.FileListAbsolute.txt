@@ -11,6 +11,7 @@ C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Infrastructure\obj\Debug\net9.0\Elearn
 C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Infrastructure\obj\Debug\net9.0\Elearn.Infrastructure.AssemblyInfoInputs.cache
 C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Infrastructure\obj\Debug\net9.0\Elearn.Infrastructure.AssemblyInfo.cs
 C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Infrastructure\obj\Debug\net9.0\Elearn.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Infrastructure\obj\Debug\net9.0\Elearn.Infrastructure.sourcelink.json
 C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Infrastructure\obj\Debug\net9.0\Elearn.I.8893ED5A.Up2Date
 C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Infrastructure\obj\Debug\net9.0\Elearn.Infrastructure.dll
 C:\Users\Juo\Desktop\DA\E-Learning\Elearn.Infrastructure\obj\Debug\net9.0\refint\Elearn.Infrastructure.dll

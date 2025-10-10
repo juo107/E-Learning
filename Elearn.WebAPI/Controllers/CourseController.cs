@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Elearn.Application.Interfaces;
+﻿using AutoMapper;
+using Elearn.Application.DTOs.Course;
+using Elearn.Application.Services.Interfaces;
 using Elearn.Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Elearn.WebAPI.Controllers
 {
@@ -9,47 +11,69 @@ namespace Elearn.WebAPI.Controllers
     public class CourseController : ControllerBase
     {
         private readonly ICourseService _courseService;
+        private readonly IMapper _mapper;
 
-        public CourseController(ICourseService courseService)
+        public CourseController(ICourseService courseService, IMapper mapper)
         {
             _courseService = courseService;
+            _mapper = mapper;
         }
 
+        // CREATE
+        [HttpPost]
+        public async Task<IActionResult> CreateCourse([FromBody] CreateCourseDto dto)
+        {
+            var course = _mapper.Map<Course>(dto);
+            await _courseService.CreateCourseAsync(course);
+            var result = _mapper.Map<CourseDto>(course);
+            return CreatedAtAction(nameof(GetCourseById), new { id = result.Id }, result);
+        }
+
+        // READ ALL
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAllCourses()
         {
             var courses = await _courseService.GetAllCoursesAsync();
-            return Ok(courses);
+            var result = _mapper.Map<IEnumerable<CourseDto>>(courses);
+            return Ok(result);
         }
 
+        // READ BY ID
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetCourseById(Guid id)
         {
             var course = await _courseService.GetCourseByIdAsync(id);
-            if (course == null) return NotFound();
-            return Ok(course);
+            if (course == null)
+                return NotFound();
+
+            var result = _mapper.Map<CourseDto>(course);
+            return Ok(result);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create(Course course)
-        {
-            var created = await _courseService.CreateCourseAsync(course);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-        }
-
+        // UPDATE
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, Course course)
+        public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] CreateCourseDto dto)
         {
-            var result = await _courseService.UpdateCourseAsync(id, course);
-            if (!result) return NotFound();
-            return NoContent();
+            var existing = await _courseService.GetCourseByIdAsync(id);
+            if (existing == null)
+                return NotFound();
+            var updatedCourse = _mapper.Map<Course>(dto);
+            updatedCourse.Id = id;
+            await _courseService.UpdateCourseAsync(id, updatedCourse);
+            var result = _mapper.Map<CourseDto>(existing);
+            return Ok(result);
         }
 
+
+        // DELETE
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> DeleteCourse(Guid id)
         {
-            var result = await _courseService.DeleteCourseAsync(id);
-            if (!result) return NotFound();
+            var course = await _courseService.GetCourseByIdAsync(id);
+            if (course == null)
+                return NotFound();
+
+            await _courseService.DeleteCourseAsync(id);
             return NoContent();
         }
     }

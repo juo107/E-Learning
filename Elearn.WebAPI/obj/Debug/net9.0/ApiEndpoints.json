@@ -1,7 +1,23 @@
 [
   {
     "ContainingType": "Elearn.WebAPI.Controllers.CourseController",
-    "Method": "GetAll",
+    "Method": "CreateCourse",
+    "RelativePath": "api/Course",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Elearn.Application.DTOs.Course.CreateCourseDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Elearn.WebAPI.Controllers.CourseController",
+    "Method": "GetAllCourses",
     "RelativePath": "api/Course",
     "HttpMethod": "GET",
     "IsController": true,
@@ -11,23 +27,7 @@
   },
   {
     "ContainingType": "Elearn.WebAPI.Controllers.CourseController",
-    "Method": "Create",
-    "RelativePath": "api/Course",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "course",
-        "Type": "Elearn.Domain.Entities.Course",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "Elearn.WebAPI.Controllers.CourseController",
-    "Method": "GetById",
+    "Method": "GetCourseById",
     "RelativePath": "api/Course/{id}",
     "HttpMethod": "GET",
     "IsController": true,
@@ -43,7 +43,7 @@
   },
   {
     "ContainingType": "Elearn.WebAPI.Controllers.CourseController",
-    "Method": "Update",
+    "Method": "UpdateCourse",
     "RelativePath": "api/Course/{id}",
     "HttpMethod": "PUT",
     "IsController": true,
@@ -55,8 +55,8 @@
         "IsRequired": true
       },
       {
-        "Name": "course",
-        "Type": "Elearn.Domain.Entities.Course",
+        "Name": "dto",
+        "Type": "Elearn.Application.DTOs.Course.CreateCourseDto",
         "IsRequired": true
       }
     ],
@@ -64,7 +64,7 @@
   },
   {
     "ContainingType": "Elearn.WebAPI.Controllers.CourseController",
-    "Method": "Delete",
+    "Method": "DeleteCourse",
     "RelativePath": "api/Course/{id}",
     "HttpMethod": "DELETE",
     "IsController": true,

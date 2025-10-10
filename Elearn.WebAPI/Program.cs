@@ -1,16 +1,33 @@
 using Elearn.Application;
+using Elearn.Application.Validations;
 using Elearn.Infrastructure;
+using Elearn.Infrastructure.Data;
+using FluentValidation.AspNetCore;
+using Microsoft.EntityFrameworkCore;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDbContext<ElearnDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        b => b.MigrationsAssembly("Elearn.Infrastructure")
+    ));
+
 // Add services
 builder.Services.AddApplication();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+.AddFluentValidation(config =>
+ {
+     config.RegisterValidatorsFromAssemblyContaining<CreateCourseValidator>();
+ });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Add Infrastructure Layer
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddAutoMapper(typeof(Elearn.Application.Mappings.MappingProfile));
+
 
 var app = builder.Build();
 

@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Elearn.Infrastructure.Data;
+using Elearn.Infrastructure.Repository.Interfaces;
 
-namespace Elearn.Infrastructure.Repository
+namespace Elearn.Infrastructure.Repository.Implementations
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {

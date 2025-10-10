@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Elearn.Application.Interfaces;
-using Elearn.Application.Services;
+using Elearn.Application.Services.Interfaces;
+using Elearn.Application.Services.Implementations;
 
 namespace Elearn.Application
 {

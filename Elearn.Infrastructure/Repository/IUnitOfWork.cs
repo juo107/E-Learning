@@ -1,4 +1,5 @@
 ﻿using Elearn.Domain.Entities;
+using Elearn.Infrastructure.Repository.Interfaces;
 
 namespace Elearn.Infrastructure.Repository
 {

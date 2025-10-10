@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace Elearn.Infrastructure.Repository
+namespace Elearn.Infrastructure.Repository.Interfaces
 {
     public interface IGenericRepository<T> where T : class
     {
