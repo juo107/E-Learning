@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using Elearn.Infrastructure.Data;
 using Elearn.Infrastructure.Repository.Interfaces;
+using Elearn.Domain;
 
 namespace Elearn.Infrastructure.Repository.Implementations
 {
@@ -18,12 +19,29 @@ namespace Elearn.Infrastructure.Repository.Implementations
 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
-            return await _dbSet.ToListAsync();
+            var query = _dbSet.AsQueryable();
+            
+            // Apply soft delete filter if entity implements ISoftDeletable
+            if (typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
+            {
+                query = query.Where(e => !((ISoftDeletable)e).IsDeleted);
+            }
+            
+            return await query.ToListAsync();
         }
 
         public async Task<T?> GetByIdAsync(Guid id)
         {
-            return await _dbSet.FindAsync(id);
+            var entity = await _dbSet.FindAsync(id);
+            
+            // Check soft delete if entity implements ISoftDeletable
+            if (entity != null && typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
+            {
+                if (((ISoftDeletable)entity).IsDeleted)
+                    return null;
+            }
+            
+            return entity;
         }
 
         public async Task AddAsync(T entity)
@@ -38,12 +56,29 @@ namespace Elearn.Infrastructure.Repository.Implementations
 
         public void Delete(T entity)
         {
-            _dbSet.Remove(entity);
+            // Soft delete if entity implements ISoftDeletable
+            if (typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
+            {
+                ((ISoftDeletable)entity).IsDeleted = true;
+                _dbSet.Update(entity);
+            }
+            else
+            {
+                _dbSet.Remove(entity);
+            }
         }
 
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {
-            return await _dbSet.Where(predicate).ToListAsync();
+            var query = _dbSet.Where(predicate);
+            
+            // Apply soft delete filter if entity implements ISoftDeletable
+            if (typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
+            {
+                query = query.Where(e => !((ISoftDeletable)e).IsDeleted);
+            }
+            
+            return await query.ToListAsync();
         }
 
         public async Task SaveChangesAsync()

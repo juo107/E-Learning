@@ -9,6 +9,7 @@ namespace Elearn.Application
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             services.AddScoped<ICourseService, CourseService>();
+            services.AddScoped<ICategoryService, CategoryService>();
             return services;
         }
     }

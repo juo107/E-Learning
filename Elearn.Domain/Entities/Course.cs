@@ -7,6 +7,9 @@
         public string Description { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public int DurationInMinutes { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        
+        // Foreign key to Category
+        public Guid? CategoryId { get; set; }
+        public Category? Category { get; set; }
     }
 }

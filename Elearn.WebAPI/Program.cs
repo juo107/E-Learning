@@ -26,7 +26,7 @@ builder.Services.AddSwaggerGen();
 
 // Add Infrastructure Layer
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddAutoMapper(typeof(Elearn.Application.Mappings.MappingProfile));
+builder.Services.AddAutoMapper(typeof(Elearn.Application.Mapping.MappingProfile));
 
 
 var app = builder.Build();

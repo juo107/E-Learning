@@ -4,6 +4,7 @@ using Elearn.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Elearn.Infrastructure.Migrations
 {
     [DbContext(typeof(ElearnDbContext))]
-    partial class ElearnDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251012010336_UpdateCategory")]
+    partial class UpdateCategory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -73,6 +76,9 @@ namespace Elearn.Infrastructure.Migrations
                     b.Property<Guid?>("CategoryId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("CategoryId1")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("CourseCode")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -117,15 +123,21 @@ namespace Elearn.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("CategoryId1");
+
                     b.ToTable("Courses");
                 });
 
             modelBuilder.Entity("Elearn.Domain.Entities.Course", b =>
                 {
-                    b.HasOne("Elearn.Domain.Entities.Category", "Category")
+                    b.HasOne("Elearn.Domain.Entities.Category", null)
                         .WithMany("Courses")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Elearn.Domain.Entities.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId1");
 
                     b.Navigation("Category");
                 });

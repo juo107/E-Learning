@@ -5,7 +5,8 @@ namespace Elearn.Infrastructure.Repository
 {
     public interface IUnitOfWork : IDisposable
     {
-        IGenericRepository<Course> Courses { get; }
+        ICourseRepository Courses { get; }
+        ICategoryRepository Categories { get; }
         Task<int> CompleteAsync();
     }
 }

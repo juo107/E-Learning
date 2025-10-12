@@ -1,80 +1,93 @@
-﻿using AutoMapper;
+﻿using Elearn.Application.Common;
 using Elearn.Application.DTOs.Course;
 using Elearn.Application.Services.Interfaces;
-using Elearn.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Elearn.WebAPI.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class CourseController : ControllerBase
+    public class CourseController : BaseApiController<CourseController>
     {
         private readonly ICourseService _courseService;
-        private readonly IMapper _mapper;
 
-        public CourseController(ICourseService courseService, IMapper mapper)
+        public CourseController(ICourseService courseService, ILogger<CourseController> logger)
+            : base(logger)
         {
             _courseService = courseService;
-            _mapper = mapper;
         }
 
-        // CREATE
+        #region Create
         [HttpPost]
-        public async Task<IActionResult> CreateCourse([FromBody] CreateCourseDto dto)
+        [ProducesResponseType(typeof(BaseResponse<CourseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseResponse<CourseDto>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Create([FromBody] CreateCourseDto dto)
         {
-            var course = _mapper.Map<Course>(dto);
-            await _courseService.CreateCourseAsync(course);
-            var result = _mapper.Map<CourseDto>(course);
-            return CreatedAtAction(nameof(GetCourseById), new { id = result.Id }, result);
-        }
+            if (!ModelState.IsValid)
+                return BadRequest(BaseResponse<CourseDto>.Fail(GetModelErrors()));
 
-        // READ ALL
+            var result = await _courseService.CreateCourseAsync(dto);
+            return HandleResponse(result);
+        }
+        #endregion
+
+        #region GetAll
         [HttpGet]
-        public async Task<IActionResult> GetAllCourses()
+        [ProducesResponseType(typeof(BaseResponse<IEnumerable<CourseDto>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? keyword = null,
+            [FromQuery] string? sortBy = "createdAt",
+            [FromQuery] bool isDescending = true)
         {
-            var courses = await _courseService.GetAllCoursesAsync();
-            var result = _mapper.Map<IEnumerable<CourseDto>>(courses);
-            return Ok(result);
-        }
+            var query = new QueryParameters
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Keyword = keyword,
+                SortBy = sortBy,
+                IsDescending = isDescending
+            };
 
-        // READ BY ID
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetCourseById(Guid id)
+            var result = await _courseService.GetAllCoursesAsync(query);
+            return HandleResponse(result);
+        }
+        #endregion
+
+        #region GetById
+        [HttpGet("{id:guid}")]
+        [ProducesResponseType(typeof(BaseResponse<CourseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseResponse<CourseDto>), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var course = await _courseService.GetCourseByIdAsync(id);
-            if (course == null)
-                return NotFound();
-
-            var result = _mapper.Map<CourseDto>(course);
-            return Ok(result);
+            var result = await _courseService.GetCourseByIdAsync(id);
+            return HandleResponse(result);
         }
+        #endregion
 
-        // UPDATE
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] CreateCourseDto dto)
+        #region Update
+        [HttpPut("{id:guid}")]
+        [ProducesResponseType(typeof(BaseResponse<CourseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseResponse<CourseDto>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(BaseResponse<CourseDto>), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCourseDto dto)
         {
-            var existing = await _courseService.GetCourseByIdAsync(id);
-            if (existing == null)
-                return NotFound();
-            var updatedCourse = _mapper.Map<Course>(dto);
-            updatedCourse.Id = id;
-            await _courseService.UpdateCourseAsync(id, updatedCourse);
-            var result = _mapper.Map<CourseDto>(existing);
-            return Ok(result);
+            if (!ModelState.IsValid)
+                return BadRequest(BaseResponse<CourseDto>.Fail(GetModelErrors()));
+
+            var result = await _courseService.UpdateCourseAsync(id, dto);
+            return HandleResponse(result);
         }
+        #endregion
 
-
-        // DELETE
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCourse(Guid id)
+        #region Delete
+        [HttpDelete("{id:guid}")]
+        [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var course = await _courseService.GetCourseByIdAsync(id);
-            if (course == null)
-                return NotFound();
-
-            await _courseService.DeleteCourseAsync(id);
-            return NoContent();
+            var result = await _courseService.DeleteCourseAsync(id);
+            return HandleResponse(result);
         }
+        #endregion
     }
 }
