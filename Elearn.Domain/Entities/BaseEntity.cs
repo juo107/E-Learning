@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Elearn.Domain
+namespace Elearn.Domain.Entities
 {
     public abstract class BaseEntity : ISoftDeletable
     {

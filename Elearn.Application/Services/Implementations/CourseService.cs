@@ -22,7 +22,7 @@ namespace Elearn.Application.Services.Implementations
         {
             try
             {
-                var courses = await _unitOfWork.Courses.GetAllAsync();
+                var courses = await _unitOfWork.Courses.GetAllWithIncludesAsync(c => c.Category);
                 
                 // Apply filtering by keyword if provided
                 if (parameters != null && !string.IsNullOrWhiteSpace(parameters.Keyword))
@@ -60,20 +60,20 @@ namespace Elearn.Application.Services.Implementations
             }
         }
 
-        public async Task<BaseResponse<CourseDto>> GetCourseByIdAsync(Guid id)
+        public async Task<BaseResponse<CourseDetailsDto>> GetCourseByIdAsync(Guid id)
         {
             try
             {
-                var course = await _unitOfWork.Courses.GetByIdAsync(id);
+                var course = await _unitOfWork.Courses.GetByIdWithIncludesAsync(id, c => c.Category);
                 if (course == null)
-                    return BaseResponse<CourseDto>.Fail("Course not found");
+                    return BaseResponse<CourseDetailsDto>.Fail("Course not found");
 
-                var courseDto = _mapper.Map<CourseDto>(course);
-                return BaseResponse<CourseDto>.Ok(courseDto, "Course retrieved successfully");
+                var courseDto = _mapper.Map<CourseDetailsDto>(course);
+                return BaseResponse<CourseDetailsDto>.Ok(courseDto, "Course retrieved successfully");
             }
             catch (Exception ex)
             {
-                return BaseResponse<CourseDto>.Fail($"Error retrieving course: {ex.Message}");
+                return BaseResponse<CourseDetailsDto>.Fail($"Error retrieving course: {ex.Message}");
             }
         }
 
@@ -196,20 +196,20 @@ namespace Elearn.Application.Services.Implementations
         }
 
         // Additional methods using CourseRepository specific functionality
-        public async Task<BaseResponse<CourseDto>> GetCourseByCodeAsync(string courseCode)
+        public async Task<BaseResponse<CourseDetailsDto>> GetCourseByCodeAsync(string courseCode)
         {
             try
             {
                 var course = await _unitOfWork.Courses.GetByCourseCodeAsync(courseCode);
                 if (course == null)
-                    return BaseResponse<CourseDto>.Fail("Course not found");
+                    return BaseResponse<CourseDetailsDto>.Fail("Course not found");
 
-                var courseDto = _mapper.Map<CourseDto>(course);
-                return BaseResponse<CourseDto>.Ok(courseDto, "Course retrieved successfully");
+                var courseDto = _mapper.Map<CourseDetailsDto>(course);
+                return BaseResponse<CourseDetailsDto>.Ok(courseDto, "Course retrieved successfully");
             }
             catch (Exception ex)
             {
-                return BaseResponse<CourseDto>.Fail($"Error retrieving course: {ex.Message}");
+                return BaseResponse<CourseDetailsDto>.Fail($"Error retrieving course: {ex.Message}");
             }
         }
 

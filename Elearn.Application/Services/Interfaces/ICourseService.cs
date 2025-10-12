@@ -7,8 +7,8 @@ namespace Elearn.Application.Services.Interfaces
     public interface ICourseService
     {
         Task<BaseResponse<IEnumerable<CourseDto>>> GetAllCoursesAsync(QueryParameters? parameters = null);
-        Task<BaseResponse<CourseDto>> GetCourseByIdAsync(Guid id);
-        Task<BaseResponse<CourseDto>> GetCourseByCodeAsync(string courseCode);
+        Task<BaseResponse<CourseDetailsDto>> GetCourseByIdAsync(Guid id);
+        Task<BaseResponse<CourseDetailsDto>> GetCourseByCodeAsync(string courseCode);
         Task<BaseResponse<CourseDto>> CreateCourseAsync(CreateCourseDto dto);
         Task<BaseResponse<CourseDto>> UpdateCourseAsync(Guid id, UpdateCourseDto dto);
         Task<BaseResponse<bool>> DeleteCourseAsync(Guid id);

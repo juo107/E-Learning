@@ -1,11 +1,11 @@
-﻿using Elearn.Application.DTOs.Course;
+using Elearn.Application.DTOs.Course;
 using FluentValidation;
 
 namespace Elearn.Application.Validations
 {
-    public class CreateCourseValidator : AbstractValidator<CreateCourseDto>
+    public class UpdateCourseValidator : AbstractValidator<UpdateCourseDto>
     {
-        public CreateCourseValidator()
+        public UpdateCourseValidator()
         {
             RuleFor(x => x.Title)
                 .NotEmpty().WithMessage("Course title is required.")
@@ -17,10 +17,6 @@ namespace Elearn.Application.Validations
 
             RuleFor(x => x.Price)
                 .GreaterThanOrEqualTo(0).WithMessage("Price must be greater than or equal to 0.");
-
-            RuleFor(x => x.DurationInMinutes)
-                .GreaterThan(0).WithMessage("Course duration must be greater than 0 minutes.")
-                .LessThanOrEqualTo(10080).WithMessage("Course duration cannot exceed 7 days (10080 minutes).");
 
             RuleFor(x => x.CategoryId)
                 .NotEmpty().WithMessage("Category is required.")

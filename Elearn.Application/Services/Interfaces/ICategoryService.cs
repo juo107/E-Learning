@@ -6,8 +6,8 @@ namespace Elearn.Application.Services.Interfaces
     public interface ICategoryService
     {
         Task<BaseResponse<IEnumerable<CategoryDto>>> GetAllCategoriesAsync(QueryParameters? parameters = null);
-        Task<BaseResponse<CategoryDto>> GetCategoryByIdAsync(Guid id);
-        Task<BaseResponse<CategoryDto>> GetCategoryByNameAsync(string name);
+        Task<BaseResponse<CategoryDetailsDto>> GetCategoryByIdAsync(Guid id);
+        Task<BaseResponse<CategoryDetailsDto>> GetCategoryByNameAsync(string name);
         Task<BaseResponse<CategoryDto>> CreateCategoryAsync(CreateCategoryDto dto);
         Task<BaseResponse<CategoryDto>> UpdateCategoryAsync(Guid id, UpdateCategoryDto dto);
         Task<BaseResponse<bool>> DeleteCategoryAsync(Guid id);

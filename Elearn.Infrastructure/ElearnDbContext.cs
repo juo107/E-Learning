@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Elearn.Domain.Entities;
-using Elearn.Domain;
 
 namespace Elearn.Infrastructure.Data
 {

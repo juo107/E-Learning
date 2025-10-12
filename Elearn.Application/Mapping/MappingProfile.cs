@@ -10,7 +10,11 @@ namespace Elearn.Application.Mapping
         public MappingProfile()
         {
             // Course mappings - AutoMapper sẽ tự động map các property cùng tên
-            CreateMap<Course, CourseDto>();
+            CreateMap<Course, CourseDto>()
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null));
+            
+            CreateMap<Course, CourseDetailsDto>()
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null));
             
             CreateMap<CreateCourseDto, Course>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -20,7 +24,6 @@ namespace Elearn.Application.Mapping
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
                 .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
-                .ForMember(dest => dest.CategoryId, opt => opt.Ignore())
                 .ForMember(dest => dest.Category, opt => opt.Ignore());
 
             CreateMap<UpdateCourseDto, Course>()
@@ -32,11 +35,11 @@ namespace Elearn.Application.Mapping
                 .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
                 .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
                 .ForMember(dest => dest.DurationInMinutes, opt => opt.Ignore())
-                .ForMember(dest => dest.CategoryId, opt => opt.Ignore())
                 .ForMember(dest => dest.Category, opt => opt.Ignore());
 
             // Category mappings - AutoMapper sẽ tự động map các property cùng tên
             CreateMap<Category, CategoryDto>();
+            CreateMap<Category, CategoryDetailsDto>();
             
             CreateMap<CreateCategoryDto, Category>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())

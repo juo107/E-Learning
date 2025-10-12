@@ -30,9 +30,50 @@ namespace Elearn.Infrastructure.Repository.Implementations
             return await query.ToListAsync();
         }
 
+        public async Task<IEnumerable<T>> GetAllWithIncludesAsync(params Expression<Func<T, object>>[] includes)
+        {
+            var query = _dbSet.AsQueryable();
+            
+            // Apply includes
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+            
+            // Apply soft delete filter if entity implements ISoftDeletable
+            if (typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
+            {
+                query = query.Where(e => !((ISoftDeletable)e).IsDeleted);
+            }
+            
+            return await query.ToListAsync();
+        }
+
         public async Task<T?> GetByIdAsync(Guid id)
         {
             var entity = await _dbSet.FindAsync(id);
+            
+            // Check soft delete if entity implements ISoftDeletable
+            if (entity != null && typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
+            {
+                if (((ISoftDeletable)entity).IsDeleted)
+                    return null;
+            }
+            
+            return entity;
+        }
+
+        public async Task<T?> GetByIdWithIncludesAsync(Guid id, params Expression<Func<T, object>>[] includes)
+        {
+            var query = _dbSet.AsQueryable();
+            
+            // Apply includes
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+            
+            var entity = await query.FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
             
             // Check soft delete if entity implements ISoftDeletable
             if (entity != null && typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))

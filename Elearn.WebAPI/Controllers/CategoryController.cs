@@ -1,6 +1,7 @@
 using Elearn.Application.Common;
 using Elearn.Application.DTOs.Category;
 using Elearn.Application.Services.Interfaces;
+using Elearn.Application.Validations;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Elearn.WebAPI.Controllers
@@ -21,8 +22,15 @@ namespace Elearn.WebAPI.Controllers
         [ProducesResponseType(typeof(BaseResponse<CategoryDto>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] CreateCategoryDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(BaseResponse<CategoryDto>.Fail(GetModelErrors()));
+            // Sử dụng FluentValidation
+            var validator = new CreateCategoryValidator();
+            var validationResult = await validator.ValidateAsync(dto);
+            
+            if (!validationResult.IsValid)
+            {
+                var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+                return BadRequest(BaseResponse<CategoryDto>.Fail(errors));
+            }
 
             var result = await _categoryService.CreateCategoryAsync(dto);
             return HandleResponse(result);
@@ -55,8 +63,8 @@ namespace Elearn.WebAPI.Controllers
 
         #region GetById
         [HttpGet("{id:guid}")]
-        [ProducesResponseType(typeof(BaseResponse<CategoryDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(BaseResponse<CategoryDto>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(BaseResponse<CategoryDetailsDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(BaseResponse<CategoryDetailsDto>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _categoryService.GetCategoryByIdAsync(id);
@@ -82,8 +90,15 @@ namespace Elearn.WebAPI.Controllers
         [ProducesResponseType(typeof(BaseResponse<CategoryDto>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCategoryDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(BaseResponse<CategoryDto>.Fail(GetModelErrors()));
+            // Sử dụng FluentValidation
+            var validator = new UpdateCategoryValidator();
+            var validationResult = await validator.ValidateAsync(dto);
+            
+            if (!validationResult.IsValid)
+            {
+                var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+                return BadRequest(BaseResponse<CategoryDto>.Fail(errors));
+            }
 
             var result = await _categoryService.UpdateCategoryAsync(id, dto);
             return HandleResponse(result);

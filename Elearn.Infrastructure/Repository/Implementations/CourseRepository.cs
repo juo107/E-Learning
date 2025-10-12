@@ -23,6 +23,7 @@ namespace Elearn.Infrastructure.Repository.Implementations
                 return null;
 
             return await _context.Courses
+                .Include(c => c.Category)
                 .FirstOrDefaultAsync(c => !c.IsDeleted && 
                     c.CourseCode.ToLower() == courseCode.ToLower().Trim());
         }

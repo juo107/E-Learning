@@ -58,37 +58,37 @@ namespace Elearn.Application.Services.Implementations
             }
         }
 
-        public async Task<BaseResponse<CategoryDto>> GetCategoryByIdAsync(Guid id)
+        public async Task<BaseResponse<CategoryDetailsDto>> GetCategoryByIdAsync(Guid id)
         {
             try
             {
                 var category = await _unitOfWork.Categories.GetByIdAsync(id);
                 if (category == null)
-                    return BaseResponse<CategoryDto>.Fail("Category not found");
+                    return BaseResponse<CategoryDetailsDto>.Fail("Category not found");
 
-                var categoryDto = _mapper.Map<CategoryDto>(category);
-                return BaseResponse<CategoryDto>.Ok(categoryDto, "Category retrieved successfully");
+                var categoryDto = _mapper.Map<CategoryDetailsDto>(category);
+                return BaseResponse<CategoryDetailsDto>.Ok(categoryDto, "Category retrieved successfully");
             }
             catch (Exception ex)
             {
-                return BaseResponse<CategoryDto>.Fail($"Error retrieving category: {ex.Message}");
+                return BaseResponse<CategoryDetailsDto>.Fail($"Error retrieving category: {ex.Message}");
             }
         }
 
-        public async Task<BaseResponse<CategoryDto>> GetCategoryByNameAsync(string name)
+        public async Task<BaseResponse<CategoryDetailsDto>> GetCategoryByNameAsync(string name)
         {
             try
             {
                 var category = await _unitOfWork.Categories.GetByNameAsync(name);
                 if (category == null)
-                    return BaseResponse<CategoryDto>.Fail("Category not found");
+                    return BaseResponse<CategoryDetailsDto>.Fail("Category not found");
 
-                var categoryDto = _mapper.Map<CategoryDto>(category);
-                return BaseResponse<CategoryDto>.Ok(categoryDto, "Category retrieved successfully");
+                var categoryDto = _mapper.Map<CategoryDetailsDto>(category);
+                return BaseResponse<CategoryDetailsDto>.Ok(categoryDto, "Category retrieved successfully");
             }
             catch (Exception ex)
             {
-                return BaseResponse<CategoryDto>.Fail($"Error retrieving category: {ex.Message}");
+                return BaseResponse<CategoryDetailsDto>.Fail($"Error retrieving category: {ex.Message}");
             }
         }
 
