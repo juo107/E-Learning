@@ -52,6 +52,16 @@ namespace Elearn.Infrastructure.Data
                         .Property(nameof(BaseEntity.UpdatedBy))
                         .IsRequired(false)
                         .HasMaxLength(100);
+
+                    // Configure DeletedAt and DeletedBy as optional
+                    modelBuilder.Entity(entityType.ClrType)
+                        .Property(nameof(BaseEntity.DeletedAt))
+                        .IsRequired(false);
+
+                    modelBuilder.Entity(entityType.ClrType)
+                        .Property(nameof(BaseEntity.DeletedBy))
+                        .IsRequired(false)
+                        .HasMaxLength(100);
                 }
             }
 

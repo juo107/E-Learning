@@ -133,5 +133,87 @@ namespace Elearn.Infrastructure.Repository.Implementations
                 .OrderBy(c => c.DurationInMinutes)
                 .ToListAsync();
         }
+
+        public async Task<(IEnumerable<Course> Items, int TotalCount)> GetFilteredPagedAsync(
+            int pageNumber,
+            int pageSize,
+            string? keyword = null,
+            Guid? categoryId = null,
+            decimal? minPrice = null,
+            decimal? maxPrice = null,
+            int? minDuration = null,
+            int? maxDuration = null,
+            DateTime? createdFrom = null,
+            DateTime? createdTo = null,
+            string? sortBy = null,
+            bool isDescending = true)
+        {
+            var query = _context.Courses
+                .Include(c => c.Category)
+                .Where(c => !c.IsDeleted)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var k = keyword.ToLower().Trim();
+                query = query.Where(c =>
+                    c.Title.ToLower().Contains(k) ||
+                    c.Description.ToLower().Contains(k) ||
+                    c.CourseCode.ToLower().Contains(k));
+            }
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(c => c.CategoryId == categoryId);
+            }
+
+            if (minPrice.HasValue)
+            {
+                query = query.Where(c => c.Price >= minPrice.Value);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(c => c.Price <= maxPrice.Value);
+            }
+
+            if (minDuration.HasValue)
+            {
+                query = query.Where(c => c.DurationInMinutes >= minDuration.Value);
+            }
+
+            if (maxDuration.HasValue)
+            {
+                query = query.Where(c => c.DurationInMinutes <= maxDuration.Value);
+            }
+
+            if (createdFrom.HasValue)
+            {
+                query = query.Where(c => c.CreatedAt >= createdFrom.Value);
+            }
+
+            if (createdTo.HasValue)
+            {
+                query = query.Where(c => c.CreatedAt <= createdTo.Value);
+            }
+
+            query = (sortBy?.ToLower()) switch
+            {
+                "title" => isDescending ? query.OrderByDescending(c => c.Title) : query.OrderBy(c => c.Title),
+                "price" => isDescending ? query.OrderByDescending(c => c.Price) : query.OrderBy(c => c.Price),
+                "duration" => isDescending ? query.OrderByDescending(c => c.DurationInMinutes) : query.OrderBy(c => c.DurationInMinutes),
+                "createdat" => isDescending ? query.OrderByDescending(c => c.CreatedAt) : query.OrderBy(c => c.CreatedAt),
+                _ => isDescending ? query.OrderByDescending(c => c.CreatedAt) : query.OrderBy(c => c.CreatedAt)
+            };
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
     }
 }

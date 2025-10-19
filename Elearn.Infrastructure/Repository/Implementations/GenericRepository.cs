@@ -101,6 +101,7 @@ namespace Elearn.Infrastructure.Repository.Implementations
             if (typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
             {
                 ((ISoftDeletable)entity).IsDeleted = true;
+                ((ISoftDeletable)entity).DeletedAt = DateTime.UtcNow;
                 _dbSet.Update(entity);
             }
             else

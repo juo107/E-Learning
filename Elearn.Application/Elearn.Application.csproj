@@ -9,14 +9,14 @@
   <ItemGroup>
     <ProjectReference Include="..\Elearn.Domain\Elearn.Domain.csproj" />
     <ProjectReference Include="..\Elearn.Infrastructure\Elearn.Infrastructure.csproj" />
-    <ProjectReference Include="..\Elearn.Shared\Elearn.Shared.csproj" />
+    <ProjectReference Include="..\Elearn.Search\Elearn.Search.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper" Version="15.0.1" />
     <PackageReference Include="FluentValidation" Version="12.0.0" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.10" />
   </ItemGroup>
 
 </Project>

@@ -4,6 +4,8 @@ using Elearn.Application.DTOs.Course;
 using Elearn.Application.Services.Interfaces;
 using Elearn.Domain.Entities;
 using Elearn.Infrastructure.Repository;
+using Elearn.Search.Models;
+using Elearn.Search.Services;
 
 namespace Elearn.Application.Services.Implementations
 {
@@ -11,48 +13,40 @@ namespace Elearn.Application.Services.Implementations
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICourseSearchRepository _courseSearchRepository;
 
-        public CourseService(IUnitOfWork unitOfWork, IMapper mapper)
+        public CourseService(IUnitOfWork unitOfWork, IMapper mapper, ICourseSearchRepository courseSearchRepository)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _courseSearchRepository = courseSearchRepository;
         }
 
         public async Task<BaseResponse<IEnumerable<CourseDto>>> GetAllCoursesAsync(QueryParameters? parameters = null)
         {
             try
             {
-                var courses = await _unitOfWork.Courses.GetAllWithIncludesAsync(c => c.Category);
-                
-                // Apply filtering by keyword if provided
-                if (parameters != null && !string.IsNullOrWhiteSpace(parameters.Keyword))
+                if (parameters == null)
                 {
-                    courses = courses.Where(c => 
-                        c.Title.Contains(parameters.Keyword, StringComparison.OrdinalIgnoreCase) ||
-                        c.Description.Contains(parameters.Keyword, StringComparison.OrdinalIgnoreCase) ||
-                        c.CourseCode.Contains(parameters.Keyword, StringComparison.OrdinalIgnoreCase));
+                    parameters = new QueryParameters();
                 }
 
-                // Apply sorting
-                if (parameters != null)
-                {
-                    courses = parameters.SortBy?.ToLower() switch
-                    {
-                        "title" => parameters.IsDescending ? courses.OrderByDescending(c => c.Title) : courses.OrderBy(c => c.Title),
-                        "price" => parameters.IsDescending ? courses.OrderByDescending(c => c.Price) : courses.OrderBy(c => c.Price),
-                        "duration" => parameters.IsDescending ? courses.OrderByDescending(c => c.DurationInMinutes) : courses.OrderBy(c => c.DurationInMinutes),
-                        "createdat" => parameters.IsDescending ? courses.OrderByDescending(c => c.CreatedAt) : courses.OrderBy(c => c.CreatedAt),
-                        _ => parameters.IsDescending ? courses.OrderByDescending(c => c.CreatedAt) : courses.OrderBy(c => c.CreatedAt)
-                    };
+                var (items, totalCount) = await _unitOfWork.Courses.GetFilteredPagedAsync(
+                    parameters.PageNumber,
+                    parameters.PageSize,
+                    parameters.Keyword,
+                    parameters.CategoryId,
+                    parameters.MinPrice,
+                    parameters.MaxPrice,
+                    parameters.MinDurationInMinutes,
+                    parameters.MaxDurationInMinutes,
+                    parameters.CreatedFrom,
+                    parameters.CreatedTo,
+                    parameters.SortBy,
+                    parameters.IsDescending);
 
-                    // Apply pagination
-                    courses = courses
-                        .Skip((parameters.PageNumber - 1) * parameters.PageSize)
-                        .Take(parameters.PageSize);
-                }
-
-                var courseDtos = _mapper.Map<IEnumerable<CourseDto>>(courses);
-                return BaseResponse<IEnumerable<CourseDto>>.Ok(courseDtos, "Courses retrieved successfully");
+                var courseDtos = _mapper.Map<IEnumerable<CourseDto>>(items);
+                return BaseResponse<IEnumerable<CourseDto>>.Ok(courseDtos, $"Courses retrieved successfully. Total: {totalCount}.");
             }
             catch (Exception ex)
             {
@@ -105,6 +99,19 @@ namespace Elearn.Application.Services.Implementations
                 await _unitOfWork.Courses.AddAsync(course);
                 await _unitOfWork.CompleteAsync();
 
+                // Index to Elasticsearch
+                var searchDoc = new CourseSearchDocument
+                {
+                    Id = course.Id.ToString(),
+                    CourseCode = course.CourseCode,
+                    Title = course.Title,
+                    Description = course.Description,
+                    Price = course.Price,
+                    DurationInMinutes = course.DurationInMinutes,
+                    CategoryId = course.CategoryId?.ToString()
+                };
+                await _courseSearchRepository.IndexAsync(searchDoc);
+
                 var courseDto = _mapper.Map<CourseDto>(course);
                 return BaseResponse<CourseDto>.Ok(courseDto, "Course created successfully");
             }
@@ -142,6 +149,19 @@ namespace Elearn.Application.Services.Implementations
                 _unitOfWork.Courses.Update(existing);
                 await _unitOfWork.CompleteAsync();
 
+                // Re-index updated document
+                var searchDoc = new CourseSearchDocument
+                {
+                    Id = existing.Id.ToString(),
+                    CourseCode = existing.CourseCode,
+                    Title = existing.Title,
+                    Description = existing.Description,
+                    Price = existing.Price,
+                    DurationInMinutes = existing.DurationInMinutes,
+                    CategoryId = existing.CategoryId?.ToString()
+                };
+                await _courseSearchRepository.IndexAsync(searchDoc);
+
                 var courseDto = _mapper.Map<CourseDto>(existing);
                 return BaseResponse<CourseDto>.Ok(courseDto, "Course updated successfully");
             }
@@ -164,6 +184,9 @@ namespace Elearn.Application.Services.Implementations
                 
                 _unitOfWork.Courses.Update(existing);
                 await _unitOfWork.CompleteAsync();
+
+                // Remove from search index
+                await _courseSearchRepository.DeleteAsync(existing.Id.ToString());
 
                 return BaseResponse<bool>.Ok(true, "Course deleted successfully");
             }
@@ -231,13 +254,39 @@ namespace Elearn.Application.Services.Implementations
         {
             try
             {
-                var courses = await _unitOfWork.Courses.SearchCoursesAsync(keyword);
-                var courseDtos = _mapper.Map<IEnumerable<CourseDto>>(courses);
-                return BaseResponse<IEnumerable<CourseDto>>.Ok(courseDtos, "Courses retrieved successfully");
+                // Prefer Elasticsearch search
+                var results = await _courseSearchRepository.SearchAsync(keyword);
+                var dtos = results.Select(r => new CourseDto
+                {
+                    Id = Guid.Parse(r.Id),
+                    CourseCode = r.CourseCode,
+                    Title = r.Title,
+                    Description = r.Description,
+                    Price = r.Price,
+                    DurationInMinutes = r.DurationInMinutes,
+                    CategoryId = string.IsNullOrEmpty(r.CategoryId) ? null : Guid.Parse(r.CategoryId)
+                });
+                return BaseResponse<IEnumerable<CourseDto>>.Ok(dtos, "Courses retrieved successfully");
             }
             catch (Exception ex)
             {
                 return BaseResponse<IEnumerable<CourseDto>>.Fail($"Error searching courses: {ex.Message}");
+            }
+        }
+
+        public async Task<BaseResponse<IEnumerable<string>>> AutocompleteCoursesAsync(string prefix, int size = 10)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(prefix))
+                    return BaseResponse<IEnumerable<string>>.Ok(Enumerable.Empty<string>(), "No prefix provided");
+
+                var suggestions = await _courseSearchRepository.AutocompleteAsync(prefix, size);
+                return BaseResponse<IEnumerable<string>>.Ok(suggestions, "Autocomplete suggestions retrieved successfully");
+            }
+            catch (Exception ex)
+            {
+                return BaseResponse<IEnumerable<string>>.Fail($"Error getting suggestions: {ex.Message}");
             }
         }
 

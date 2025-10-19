@@ -2,6 +2,7 @@ using Elearn.Application;
 using Elearn.Application.Validations;
 using Elearn.Infrastructure;
 using Elearn.Infrastructure.Data;
+using Elearn.Search;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -27,6 +28,9 @@ builder.Services.AddSwaggerGen();
 // Add Infrastructure Layer
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(Elearn.Application.Mapping.MappingProfile));
+
+// Add Search Layer (Elasticsearch)
+builder.Services.AddSearch(builder.Configuration);
 
 
 var app = builder.Build();

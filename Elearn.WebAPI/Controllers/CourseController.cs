@@ -44,6 +44,13 @@ namespace Elearn.WebAPI.Controllers
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] string? keyword = null,
+            [FromQuery] Guid? categoryId = null,
+            [FromQuery] decimal? minPrice = null,
+            [FromQuery] decimal? maxPrice = null,
+            [FromQuery] int? minDurationInMinutes = null,
+            [FromQuery] int? maxDurationInMinutes = null,
+            [FromQuery] DateTime? createdFrom = null,
+            [FromQuery] DateTime? createdTo = null,
             [FromQuery] string? sortBy = "createdAt",
             [FromQuery] bool isDescending = true)
         {
@@ -52,11 +59,28 @@ namespace Elearn.WebAPI.Controllers
                 PageNumber = pageNumber,
                 PageSize = pageSize,
                 Keyword = keyword,
+                CategoryId = categoryId,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
+                MinDurationInMinutes = minDurationInMinutes,
+                MaxDurationInMinutes = maxDurationInMinutes,
+                CreatedFrom = createdFrom,
+                CreatedTo = createdTo,
                 SortBy = sortBy,
                 IsDescending = isDescending
             };
 
             var result = await _courseService.GetAllCoursesAsync(query);
+            return HandleResponse(result);
+        }
+        #endregion
+
+        #region Autocomplete
+        [HttpGet("autocomplete")]
+        [ProducesResponseType(typeof(BaseResponse<IEnumerable<string>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Autocomplete([FromQuery] string prefix, [FromQuery] int size = 10)
+        {
+            var result = await _courseService.AutocompleteCoursesAsync(prefix, size);
             return HandleResponse(result);
         }
         #endregion

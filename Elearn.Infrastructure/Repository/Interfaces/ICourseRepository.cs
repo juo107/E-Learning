@@ -49,5 +49,22 @@ namespace Elearn.Infrastructure.Repository.Interfaces
         /// Lấy courses theo duration range - Logic nghiệp vụ đặc thù
         /// </summary>
         Task<IEnumerable<Course>> GetCoursesByDurationRangeAsync(int minDuration, int maxDuration);
+
+        /// <summary>
+        /// Lọc nâng cao kèm phân trang, trả về danh sách và tổng số bản ghi
+        /// </summary>
+        Task<(IEnumerable<Course> Items, int TotalCount)> GetFilteredPagedAsync(
+            int pageNumber,
+            int pageSize,
+            string? keyword = null,
+            Guid? categoryId = null,
+            decimal? minPrice = null,
+            decimal? maxPrice = null,
+            int? minDuration = null,
+            int? maxDuration = null,
+            DateTime? createdFrom = null,
+            DateTime? createdTo = null,
+            string? sortBy = null,
+            bool isDescending = true);
     }
 }

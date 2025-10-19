@@ -22,6 +22,15 @@ namespace Elearn.Application.Common
         public string? Keyword { get; set; }
         public string? SortBy { get; set; } = "CreatedAt";
         public bool IsDescending { get; set; } = true;
+
+        // Advanced filters
+        public Guid? CategoryId { get; set; }
+        public decimal? MinPrice { get; set; }
+        public decimal? MaxPrice { get; set; }
+        public int? MinDurationInMinutes { get; set; }
+        public int? MaxDurationInMinutes { get; set; }
+        public DateTime? CreatedFrom { get; set; }
+        public DateTime? CreatedTo { get; set; }
     }
 }
 
