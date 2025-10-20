@@ -106,5 +106,44 @@ namespace Elearn.Infrastructure.Repository.Implementations
             await _context.SaveChangesAsync();
             return true;
         }
+
+        /// <summary>
+        /// Lấy root categories (không có parent) - Logic nghiệp vụ đặc thù
+        /// </summary>
+        public async Task<IEnumerable<Category>> GetRootCategoriesAsync()
+        {
+            return await _context.Categories
+                .Where(c => !c.IsDeleted && c.ParentCategoryId == null)
+                .Include(c => c.SubCategories)
+                .Include(c => c.Courses)
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Lấy sub categories của parent category - Logic nghiệp vụ đặc thù
+        /// </summary>
+        public async Task<IEnumerable<Category>> GetSubCategoriesAsync(Guid parentId)
+        {
+            return await _context.Categories
+                .Where(c => !c.IsDeleted && c.ParentCategoryId == parentId)
+                .Include(c => c.SubCategories)
+                .Include(c => c.Courses)
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Lấy category với đầy đủ hierarchy (parent, subcategories, courses) - Logic nghiệp vụ đặc thù
+        /// </summary>
+        public async Task<Category?> GetCategoryWithHierarchyAsync(Guid id)
+        {
+            return await _context.Categories
+                .Where(c => !c.IsDeleted && c.Id == id)
+                .Include(c => c.ParentCategory)
+                .Include(c => c.SubCategories)
+                .Include(c => c.Courses)
+                .FirstOrDefaultAsync();
+        }
     }
 }

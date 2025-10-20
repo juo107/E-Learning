@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Elearn.Domain.Entities
 {
@@ -11,7 +8,12 @@ namespace Elearn.Domain.Entities
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
 
+        // 🔹 Self-referencing relationship
+        public Guid? ParentCategoryId { get; set; }
+        public Category? ParentCategory { get; set; }
+
+        public ICollection<Category>? SubCategories { get; set; }
+
         public ICollection<Course>? Courses { get; set; }
     }
 }
-

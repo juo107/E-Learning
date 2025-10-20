@@ -4,6 +4,7 @@ using Elearn.Application.DTOs.Course;
 using Elearn.Application.Services.Interfaces;
 using Elearn.Domain.Entities;
 using Elearn.Infrastructure.Repository;
+using Elearn.Infrastructure.Services;
 using Elearn.Search.Models;
 using Elearn.Search.Services;
 
@@ -14,12 +15,14 @@ namespace Elearn.Application.Services.Implementations
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICourseSearchRepository _courseSearchRepository;
+        private readonly IRedisCacheService _cache;
 
-        public CourseService(IUnitOfWork unitOfWork, IMapper mapper, ICourseSearchRepository courseSearchRepository)
+        public CourseService(IUnitOfWork unitOfWork, IMapper mapper, ICourseSearchRepository courseSearchRepository, IRedisCacheService cache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _courseSearchRepository = courseSearchRepository;
+            _cache = cache;
         }
 
         public async Task<BaseResponse<IEnumerable<CourseDto>>> GetAllCoursesAsync(QueryParameters? parameters = null)
@@ -58,11 +61,22 @@ namespace Elearn.Application.Services.Implementations
         {
             try
             {
+                var cacheKey = $"course:{id}";
+                var cachedCourse = await _cache.GetAsync<CourseDetailsDto>(cacheKey);
+                if (cachedCourse != null)
+                {
+                    return BaseResponse<CourseDetailsDto>.Ok(cachedCourse, "Course retrieved from cache");
+                }
+
                 var course = await _unitOfWork.Courses.GetByIdWithIncludesAsync(id, c => c.Category);
                 if (course == null)
                     return BaseResponse<CourseDetailsDto>.Fail("Course not found");
 
                 var courseDto = _mapper.Map<CourseDetailsDto>(course);
+                
+                // Cache for 30 minutes
+                await _cache.SetAsync(cacheKey, courseDto, TimeSpan.FromMinutes(30));
+                
                 return BaseResponse<CourseDetailsDto>.Ok(courseDto, "Course retrieved successfully");
             }
             catch (Exception ex)
@@ -111,6 +125,10 @@ namespace Elearn.Application.Services.Implementations
                     CategoryId = course.CategoryId?.ToString()
                 };
                 await _courseSearchRepository.IndexAsync(searchDoc);
+
+                // Invalidate cache
+                await _cache.RemoveByPatternAsync("course:*");
+                await _cache.RemoveByPatternAsync("courses:*");
 
                 var courseDto = _mapper.Map<CourseDto>(course);
                 return BaseResponse<CourseDto>.Ok(courseDto, "Course created successfully");
@@ -162,6 +180,10 @@ namespace Elearn.Application.Services.Implementations
                 };
                 await _courseSearchRepository.IndexAsync(searchDoc);
 
+                // Invalidate cache
+                await _cache.RemoveAsync($"course:{existing.Id}");
+                await _cache.RemoveByPatternAsync("courses:*");
+
                 var courseDto = _mapper.Map<CourseDto>(existing);
                 return BaseResponse<CourseDto>.Ok(courseDto, "Course updated successfully");
             }
@@ -187,6 +209,10 @@ namespace Elearn.Application.Services.Implementations
 
                 // Remove from search index
                 await _courseSearchRepository.DeleteAsync(existing.Id.ToString());
+
+                // Invalidate cache
+                await _cache.RemoveAsync($"course:{existing.Id}");
+                await _cache.RemoveByPatternAsync("courses:*");
 
                 return BaseResponse<bool>.Ok(true, "Course deleted successfully");
             }

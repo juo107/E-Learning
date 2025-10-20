@@ -39,5 +39,20 @@ namespace Elearn.Infrastructure.Repository.Interfaces
         /// Khôi phục category đã bị xóa - Logic nghiệp vụ đặc thù
         /// </summary>
         Task<bool> RestoreCategoryAsync(Guid id);
+        
+        /// <summary>
+        /// Lấy root categories (không có parent) - Logic nghiệp vụ đặc thù
+        /// </summary>
+        Task<IEnumerable<Category>> GetRootCategoriesAsync();
+        
+        /// <summary>
+        /// Lấy sub categories của parent category - Logic nghiệp vụ đặc thù
+        /// </summary>
+        Task<IEnumerable<Category>> GetSubCategoriesAsync(Guid parentId);
+        
+        /// <summary>
+        /// Lấy category với đầy đủ hierarchy (parent, subcategories, courses) - Logic nghiệp vụ đặc thù
+        /// </summary>
+        Task<Category?> GetCategoryWithHierarchyAsync(Guid id);
     }
 }

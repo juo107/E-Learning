@@ -1,3 +1,5 @@
+using Elearn.Application.DTOs.Course;
+
 namespace Elearn.Application.DTOs.Category
 {
     public class CategoryDetailsDto
@@ -10,5 +12,9 @@ namespace Elearn.Application.DTOs.Category
         public DateTime? UpdatedAt { get; set; }
         public string? UpdatedBy { get; set; }
         public bool IsDeleted { get; set; }
+        public Guid? ParentCategoryId { get; set; }
+        public string? ParentCategoryName { get; set; }
+        public List<CategoryDto>? SubCategories { get; set; }
+        public List<CourseDto>? Courses { get; set; }
     }
 }

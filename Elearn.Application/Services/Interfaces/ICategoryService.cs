@@ -16,6 +16,9 @@ namespace Elearn.Application.Services.Interfaces
         Task<BaseResponse<IEnumerable<CategoryDto>>> GetCategoriesWithCoursesAsync();
         Task<BaseResponse<IEnumerable<CategoryDto>>> GetCategoriesWithActiveCoursesAsync();
         Task<BaseResponse<IEnumerable<CategoryDto>>> GetDeletedCategoriesAsync();
+        Task<BaseResponse<IEnumerable<CategoryDto>>> GetRootCategoriesAsync();
+        Task<BaseResponse<IEnumerable<CategoryDto>>> GetSubCategoriesAsync(Guid parentId);
+        Task<BaseResponse<CategoryDetailsDto>> GetCategoryWithHierarchyAsync(Guid id);
         Task<bool> CategoryExistsAsync(Guid id);
         Task<bool> CategoryExistsByNameAsync(string name);
     }

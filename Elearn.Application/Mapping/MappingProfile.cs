@@ -38,8 +38,15 @@ namespace Elearn.Application.Mapping
                 .ForMember(dest => dest.Category, opt => opt.Ignore());
 
             // Category mappings - AutoMapper sẽ tự động map các property cùng tên
-            CreateMap<Category, CategoryDto>();
-            CreateMap<Category, CategoryDetailsDto>();
+            CreateMap<Category, CategoryDto>()
+                .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategory != null ? src.ParentCategory.Name : null))
+                .ForMember(dest => dest.SubCategoriesCount, opt => opt.MapFrom(src => src.SubCategories != null ? src.SubCategories.Count : 0))
+                .ForMember(dest => dest.CoursesCount, opt => opt.MapFrom(src => src.Courses != null ? src.Courses.Count : 0));
+                
+            CreateMap<Category, CategoryDetailsDto>()
+                .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategory != null ? src.ParentCategory.Name : null))
+                .ForMember(dest => dest.SubCategories, opt => opt.MapFrom(src => src.SubCategories))
+                .ForMember(dest => dest.Courses, opt => opt.MapFrom(src => src.Courses));
             
             CreateMap<CreateCategoryDto, Category>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -48,7 +55,9 @@ namespace Elearn.Application.Mapping
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
                 .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
-                .ForMember(dest => dest.Courses, opt => opt.Ignore());
+                .ForMember(dest => dest.Courses, opt => opt.Ignore())
+                .ForMember(dest => dest.ParentCategory, opt => opt.Ignore())
+                .ForMember(dest => dest.SubCategories, opt => opt.Ignore());
 
             CreateMap<UpdateCategoryDto, Category>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -57,7 +66,9 @@ namespace Elearn.Application.Mapping
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
                 .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
-                .ForMember(dest => dest.Courses, opt => opt.Ignore());
+                .ForMember(dest => dest.Courses, opt => opt.Ignore())
+                .ForMember(dest => dest.ParentCategory, opt => opt.Ignore())
+                .ForMember(dest => dest.SubCategories, opt => opt.Ignore());
         }
     }
 }

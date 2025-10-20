@@ -4,6 +4,7 @@ using Elearn.Application.DTOs.Category;
 using Elearn.Application.Services.Interfaces;
 using Elearn.Domain.Entities;
 using Elearn.Infrastructure.Repository;
+using Elearn.Infrastructure.Services;
 
 namespace Elearn.Application.Services.Implementations
 {
@@ -11,11 +12,13 @@ namespace Elearn.Application.Services.Implementations
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IRedisCacheService _cache;
 
-        public CategoryService(IUnitOfWork unitOfWork, IMapper mapper)
+        public CategoryService(IUnitOfWork unitOfWork, IMapper mapper, IRedisCacheService cache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _cache = cache;
         }
 
         public async Task<BaseResponse<IEnumerable<CategoryDto>>> GetAllCategoriesAsync(QueryParameters? parameters = null)
@@ -62,11 +65,22 @@ namespace Elearn.Application.Services.Implementations
         {
             try
             {
+                var cacheKey = $"category:{id}";
+                var cachedCategory = await _cache.GetAsync<CategoryDetailsDto>(cacheKey);
+                if (cachedCategory != null)
+                {
+                    return BaseResponse<CategoryDetailsDto>.Ok(cachedCategory, "Category retrieved from cache");
+                }
+
                 var category = await _unitOfWork.Categories.GetByIdAsync(id);
                 if (category == null)
                     return BaseResponse<CategoryDetailsDto>.Fail("Category not found");
 
                 var categoryDto = _mapper.Map<CategoryDetailsDto>(category);
+                
+                // Cache for 30 minutes
+                await _cache.SetAsync(cacheKey, categoryDto, TimeSpan.FromMinutes(30));
+                
                 return BaseResponse<CategoryDetailsDto>.Ok(categoryDto, "Category retrieved successfully");
             }
             catch (Exception ex)
@@ -111,8 +125,20 @@ namespace Elearn.Application.Services.Implementations
                 category.CreatedAt = DateTime.UtcNow;
                 category.CreatedBy = "System"; // TODO: Get from current user context
 
+                // Validate parent category if provided
+                if (dto.ParentCategoryId.HasValue)
+                {
+                    var parentExists = await CategoryExistsAsync(dto.ParentCategoryId.Value);
+                    if (!parentExists)
+                        return BaseResponse<CategoryDto>.Fail("Parent category not found");
+                }
+
                 await _unitOfWork.Categories.AddAsync(category);
                 await _unitOfWork.CompleteAsync();
+
+                // Invalidate cache
+                await _cache.RemoveByPatternAsync("category:*");
+                await _cache.RemoveByPatternAsync("categories:*");
 
                 var categoryDto = _mapper.Map<CategoryDto>(category);
                 return BaseResponse<CategoryDto>.Ok(categoryDto, "Category created successfully");
@@ -143,14 +169,30 @@ namespace Elearn.Application.Services.Implementations
                 if (existingByName != null && existingByName.Id != id)
                     return BaseResponse<CategoryDto>.Fail("Category with this name already exists");
 
+                // Validate parent category if provided
+                if (dto.ParentCategoryId.HasValue)
+                {
+                    if (dto.ParentCategoryId.Value == id)
+                        return BaseResponse<CategoryDto>.Fail("Category cannot be its own parent");
+                    
+                    var parentExists = await CategoryExistsAsync(dto.ParentCategoryId.Value);
+                    if (!parentExists)
+                        return BaseResponse<CategoryDto>.Fail("Parent category not found");
+                }
+
                 // Update properties
                 existing.Name = dto.Name;
                 existing.Description = dto.Description;
+                existing.ParentCategoryId = dto.ParentCategoryId;
                 existing.UpdatedAt = DateTime.UtcNow;
                 existing.UpdatedBy = "System"; // TODO: Get from current user context
 
                 _unitOfWork.Categories.Update(existing);
                 await _unitOfWork.CompleteAsync();
+
+                // Invalidate cache
+                await _cache.RemoveAsync($"category:{existing.Id}");
+                await _cache.RemoveByPatternAsync("categories:*");
 
                 var categoryDto = _mapper.Map<CategoryDto>(existing);
                 return BaseResponse<CategoryDto>.Ok(categoryDto, "Category updated successfully");
@@ -176,6 +218,10 @@ namespace Elearn.Application.Services.Implementations
                 
                 _unitOfWork.Categories.Update(existing);
                 await _unitOfWork.CompleteAsync();
+
+                // Invalidate cache
+                await _cache.RemoveAsync($"category:{existing.Id}");
+                await _cache.RemoveByPatternAsync("categories:*");
 
                 return BaseResponse<bool>.Ok(true, "Category deleted successfully");
             }
@@ -266,6 +312,84 @@ namespace Elearn.Application.Services.Implementations
         public async Task<bool> CategoryExistsByNameAsync(string name)
         {
             return await _unitOfWork.Categories.ExistsByNameAsync(name);
+        }
+
+        public async Task<BaseResponse<IEnumerable<CategoryDto>>> GetRootCategoriesAsync()
+        {
+            try
+            {
+                var cacheKey = "categories:root";
+                var cachedCategories = await _cache.GetAsync<IEnumerable<CategoryDto>>(cacheKey);
+                if (cachedCategories != null)
+                {
+                    return BaseResponse<IEnumerable<CategoryDto>>.Ok(cachedCategories, "Root categories retrieved from cache");
+                }
+
+                var categories = await _unitOfWork.Categories.GetRootCategoriesAsync();
+                var categoryDtos = _mapper.Map<IEnumerable<CategoryDto>>(categories);
+                
+                // Cache for 30 minutes
+                await _cache.SetAsync(cacheKey, categoryDtos, TimeSpan.FromMinutes(30));
+                
+                return BaseResponse<IEnumerable<CategoryDto>>.Ok(categoryDtos, "Root categories retrieved successfully");
+            }
+            catch (Exception ex)
+            {
+                return BaseResponse<IEnumerable<CategoryDto>>.Fail($"Error retrieving root categories: {ex.Message}");
+            }
+        }
+
+        public async Task<BaseResponse<IEnumerable<CategoryDto>>> GetSubCategoriesAsync(Guid parentId)
+        {
+            try
+            {
+                var cacheKey = $"categories:sub:{parentId}";
+                var cachedCategories = await _cache.GetAsync<IEnumerable<CategoryDto>>(cacheKey);
+                if (cachedCategories != null)
+                {
+                    return BaseResponse<IEnumerable<CategoryDto>>.Ok(cachedCategories, "Sub categories retrieved from cache");
+                }
+
+                var categories = await _unitOfWork.Categories.GetSubCategoriesAsync(parentId);
+                var categoryDtos = _mapper.Map<IEnumerable<CategoryDto>>(categories);
+                
+                // Cache for 30 minutes
+                await _cache.SetAsync(cacheKey, categoryDtos, TimeSpan.FromMinutes(30));
+                
+                return BaseResponse<IEnumerable<CategoryDto>>.Ok(categoryDtos, "Sub categories retrieved successfully");
+            }
+            catch (Exception ex)
+            {
+                return BaseResponse<IEnumerable<CategoryDto>>.Fail($"Error retrieving sub categories: {ex.Message}");
+            }
+        }
+
+        public async Task<BaseResponse<CategoryDetailsDto>> GetCategoryWithHierarchyAsync(Guid id)
+        {
+            try
+            {
+                var cacheKey = $"category:hierarchy:{id}";
+                var cachedCategory = await _cache.GetAsync<CategoryDetailsDto>(cacheKey);
+                if (cachedCategory != null)
+                {
+                    return BaseResponse<CategoryDetailsDto>.Ok(cachedCategory, "Category hierarchy retrieved from cache");
+                }
+
+                var category = await _unitOfWork.Categories.GetCategoryWithHierarchyAsync(id);
+                if (category == null)
+                    return BaseResponse<CategoryDetailsDto>.Fail("Category not found");
+
+                var categoryDto = _mapper.Map<CategoryDetailsDto>(category);
+                
+                // Cache for 30 minutes
+                await _cache.SetAsync(cacheKey, categoryDto, TimeSpan.FromMinutes(30));
+                
+                return BaseResponse<CategoryDetailsDto>.Ok(categoryDto, "Category hierarchy retrieved successfully");
+            }
+            catch (Exception ex)
+            {
+                return BaseResponse<CategoryDetailsDto>.Fail($"Error retrieving category hierarchy: {ex.Message}");
+            }
         }
     }
 }
