@@ -15,6 +15,18 @@ builder.Services.AddDbContext<ElearnDbContext>(options =>
         b => b.MigrationsAssembly("Elearn.Infrastructure")
     ));
 
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "https://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 // Add services
 builder.Services.AddApplication();
 builder.Services.AddControllers()
@@ -41,6 +53,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Use CORS
+app.UseCors("AllowFrontend");
 
 app.UseAuthorization();
 app.MapControllers();

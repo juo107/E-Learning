@@ -20,6 +20,9 @@ namespace Elearn.Infrastructure
                 options.Configuration = configuration.GetConnectionString("Redis");
             });
             services.AddScoped<IRedisCacheService, RedisCacheService>();
+            
+            // Test Redis connection on startup
+            services.AddHostedService<RedisConnectionTestService>();
 
             // Register repositories, services ở đây sau
             services.AddScoped<IUnitOfWork, UnitOfWork>();

@@ -25,10 +25,25 @@ namespace Elearn.Application.Services.Implementations
         {
             try
             {
+                if (parameters == null)
+                {
+                    parameters = new QueryParameters();
+                }
+
+                // Create cache key based on parameters
+                var cacheKey = $"categories:list:{parameters.PageNumber}:{parameters.PageSize}:{parameters.Keyword}:{parameters.SortBy}:{parameters.IsDescending}";
+                
+                // Try to get from cache first
+                var cachedCategories = await _cache.GetAsync<IEnumerable<CategoryDto>>(cacheKey);
+                if (cachedCategories != null)
+                {
+                    return BaseResponse<IEnumerable<CategoryDto>>.Ok(cachedCategories, "Categories retrieved from cache");
+                }
+
                 var categories = await _unitOfWork.Categories.GetAllAsync();
                 
                 // Apply filtering by keyword if provided
-                if (parameters != null && !string.IsNullOrWhiteSpace(parameters.Keyword))
+                if (!string.IsNullOrWhiteSpace(parameters.Keyword))
                 {
                     categories = categories.Where(c => 
                         c.Name.Contains(parameters.Keyword, StringComparison.OrdinalIgnoreCase) ||
@@ -36,23 +51,24 @@ namespace Elearn.Application.Services.Implementations
                 }
 
                 // Apply sorting
-                if (parameters != null)
+                categories = parameters.SortBy?.ToLower() switch
                 {
-                    categories = parameters.SortBy?.ToLower() switch
-                    {
-                        "name" => parameters.IsDescending ? categories.OrderByDescending(c => c.Name) : categories.OrderBy(c => c.Name),
-                        "description" => parameters.IsDescending ? categories.OrderByDescending(c => c.Description) : categories.OrderBy(c => c.Description),
-                        "createdat" => parameters.IsDescending ? categories.OrderByDescending(c => c.CreatedAt) : categories.OrderBy(c => c.CreatedAt),
-                        _ => parameters.IsDescending ? categories.OrderByDescending(c => c.CreatedAt) : categories.OrderBy(c => c.CreatedAt)
-                    };
+                    "name" => parameters.IsDescending ? categories.OrderByDescending(c => c.Name) : categories.OrderBy(c => c.Name),
+                    "description" => parameters.IsDescending ? categories.OrderByDescending(c => c.Description) : categories.OrderBy(c => c.Description),
+                    "createdat" => parameters.IsDescending ? categories.OrderByDescending(c => c.CreatedAt) : categories.OrderBy(c => c.CreatedAt),
+                    _ => parameters.IsDescending ? categories.OrderByDescending(c => c.CreatedAt) : categories.OrderBy(c => c.CreatedAt)
+                };
 
-                    // Apply pagination
-                    categories = categories
+                // Apply pagination
+                categories = categories
                         .Skip((parameters.PageNumber - 1) * parameters.PageSize)
                         .Take(parameters.PageSize);
-                }
 
                 var categoryDtos = _mapper.Map<IEnumerable<CategoryDto>>(categories);
+                
+                // Cache for 15 minutes
+                await _cache.SetAsync(cacheKey, categoryDtos, TimeSpan.FromMinutes(15));
+                
                 return BaseResponse<IEnumerable<CategoryDto>>.Ok(categoryDtos, "Categories retrieved successfully");
             }
             catch (Exception ex)

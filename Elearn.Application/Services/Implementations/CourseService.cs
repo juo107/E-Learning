@@ -34,6 +34,17 @@ namespace Elearn.Application.Services.Implementations
                     parameters = new QueryParameters();
                 }
 
+                // Create cache key based on parameters
+                var cacheKey = $"courses:list:{parameters.PageNumber}:{parameters.PageSize}:{parameters.Keyword}:{parameters.CategoryId}:{parameters.MinPrice}:{parameters.MaxPrice}:{parameters.SortBy}:{parameters.IsDescending}";
+                
+                // Try to get from cache first
+                var cachedCourses = await _cache.GetAsync<IEnumerable<CourseDto>>(cacheKey);
+                if (cachedCourses != null)
+                {
+                    return BaseResponse<IEnumerable<CourseDto>>.Ok(cachedCourses, "Courses retrieved from cache");
+                }
+
+                // If not in cache, get from database
                 var (items, totalCount) = await _unitOfWork.Courses.GetFilteredPagedAsync(
                     parameters.PageNumber,
                     parameters.PageSize,
@@ -49,6 +60,10 @@ namespace Elearn.Application.Services.Implementations
                     parameters.IsDescending);
 
                 var courseDtos = _mapper.Map<IEnumerable<CourseDto>>(items);
+                
+                // Cache for 15 minutes
+                await _cache.SetAsync(cacheKey, courseDtos, TimeSpan.FromMinutes(15));
+                
                 return BaseResponse<IEnumerable<CourseDto>>.Ok(courseDtos, $"Courses retrieved successfully. Total: {totalCount}.");
             }
             catch (Exception ex)
