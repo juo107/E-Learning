@@ -150,6 +150,7 @@ namespace Elearn.Infrastructure.Repository.Implementations
         {
             var query = _context.Courses
                 .Include(c => c.Category)
+                .Include(c => c.CourseMedias)
                 .Where(c => !c.IsDeleted)
                 .AsQueryable();
 

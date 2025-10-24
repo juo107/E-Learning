@@ -83,7 +83,7 @@ namespace Elearn.Application.Services.Implementations
                     return BaseResponse<CourseDetailsDto>.Ok(cachedCourse, "Course retrieved from cache");
                 }
 
-                var course = await _unitOfWork.Courses.GetByIdWithIncludesAsync(id, c => c.Category);
+                var course = await _unitOfWork.Courses.GetByIdWithIncludesAsync(id, c => c.Category, c => c.CourseMedias);
                 if (course == null)
                     return BaseResponse<CourseDetailsDto>.Fail("Course not found");
 
@@ -344,6 +344,34 @@ namespace Elearn.Application.Services.Implementations
             catch (Exception ex)
             {
                 return BaseResponse<bool>.Fail($"Error restoring course: {ex.Message}");
+            }
+        }
+
+        public async Task<BaseResponse<bool>> IndexAllCoursesAsync()
+        {
+            try
+            {
+                var courses = await _unitOfWork.Courses.GetAllAsync();
+                var courseDtos = _mapper.Map<IEnumerable<CourseDto>>(courses);
+
+                foreach (var course in courseDtos)
+                {
+                    var searchDocument = new Elearn.Search.Models.CourseSearchDocument
+                    {
+                        Id = course.Id.ToString(),
+                        Title = course.Title,
+                        Description = course.Description,
+                        CourseCode = course.CourseCode
+                    };
+
+                    await _courseSearchRepository.IndexAsync(searchDocument);
+                }
+
+                return BaseResponse<bool>.Ok(true, $"Successfully indexed {courseDtos.Count()} courses");
+            }
+            catch (Exception ex)
+            {
+                return BaseResponse<bool>.Fail($"Error indexing courses: {ex.Message}");
             }
         }
     }

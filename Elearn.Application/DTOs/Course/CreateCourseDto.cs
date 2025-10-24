@@ -7,5 +7,8 @@
         public decimal Price { get; set; }
         public int DurationInMinutes { get; set; }
         public Guid? CategoryId { get; set; }
+        public float? DiscountPercent { get; set; }
+        public decimal? FinalPrice { get; set; }
+        public DateTime? DiscountExpiresAt { get; set; }
     }
 }

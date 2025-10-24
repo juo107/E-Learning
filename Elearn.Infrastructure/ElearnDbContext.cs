@@ -12,6 +12,7 @@ namespace Elearn.Infrastructure.Data
 
         public DbSet<Course> Courses { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<CourseMedia> CourseMedias { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -73,6 +74,7 @@ namespace Elearn.Infrastructure.Data
                 entity.Property(c => c.Title).IsRequired().HasMaxLength(200);
                 entity.Property(c => c.Description).HasMaxLength(2000);
                 entity.Property(c => c.Price).HasColumnType("decimal(18,2)");
+                entity.Property(c => c.FinalPrice).HasColumnType("decimal(18,2)");
                 entity.Property(c => c.DurationInMinutes).IsRequired();
 
                 // Configure relationship with Category
@@ -92,6 +94,30 @@ namespace Elearn.Infrastructure.Data
 
                 // Configure unique constraint on Name
                 entity.HasIndex(c => c.Name).IsUnique();
+            });
+
+            // Configure CourseMedia entity
+            modelBuilder.Entity<CourseMedia>(entity =>
+            {
+                entity.HasKey(cm => cm.Id);
+                entity.Property(cm => cm.MediaType).IsRequired().HasConversion<int>();
+                entity.Property(cm => cm.MediaUrl).IsRequired().HasMaxLength(1000);
+                entity.Property(cm => cm.ThumbnailUrl).HasMaxLength(1000);
+                entity.Property(cm => cm.AltText).HasMaxLength(255);
+                entity.Property(cm => cm.Status).IsRequired().HasConversion<int>();
+
+                // Configure relationship with Course
+                entity.HasOne(cm => cm.Course)
+                    .WithMany(c => c.CourseMedias)
+                    .HasForeignKey(cm => cm.CourseId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Configure indexes
+                entity.HasIndex(cm => cm.CourseId);
+                entity.HasIndex(cm => cm.MediaType);
+                entity.HasIndex(cm => cm.Status);
+                entity.HasIndex(cm => cm.IsPrimary);
             });
         }
     }

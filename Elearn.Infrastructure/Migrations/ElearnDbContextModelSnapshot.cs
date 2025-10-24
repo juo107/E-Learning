@@ -109,8 +109,17 @@ namespace Elearn.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<DateTime?>("DiscountExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<float?>("DiscountPercent")
+                        .HasColumnType("real");
+
                     b.Property<int>("DurationInMinutes")
                         .HasColumnType("int");
+
+                    b.Property<decimal?>("FinalPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -139,6 +148,88 @@ namespace Elearn.Infrastructure.Migrations
                     b.ToTable("Courses");
                 });
 
+            modelBuilder.Entity("Elearn.Domain.Entities.CourseMedia", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AltText")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("FileSizeKB")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Height")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MediaType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MediaUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("Width")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("IsPrimary");
+
+                    b.HasIndex("MediaType");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("CourseMedias");
+                });
+
             modelBuilder.Entity("Elearn.Domain.Entities.Category", b =>
                 {
                     b.HasOne("Elearn.Domain.Entities.Category", "ParentCategory")
@@ -158,11 +249,27 @@ namespace Elearn.Infrastructure.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("Elearn.Domain.Entities.CourseMedia", b =>
+                {
+                    b.HasOne("Elearn.Domain.Entities.Course", "Course")
+                        .WithMany("CourseMedias")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+                });
+
             modelBuilder.Entity("Elearn.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Courses");
 
                     b.Navigation("SubCategories");
+                });
+
+            modelBuilder.Entity("Elearn.Domain.Entities.Course", b =>
+                {
+                    b.Navigation("CourseMedias");
                 });
 #pragma warning restore 612, 618
         }

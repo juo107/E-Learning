@@ -85,6 +85,16 @@ namespace Elearn.WebAPI.Controllers
         }
         #endregion
 
+        #region Search
+        [HttpGet("search")]
+        [ProducesResponseType(typeof(BaseResponse<IEnumerable<CourseDto>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Search([FromQuery] string keyword)
+        {
+            var result = await _courseService.SearchCoursesAsync(keyword);
+            return HandleResponse(result);
+        }
+        #endregion
+
         #region GetById
         [HttpGet("{id:guid}")]
         [ProducesResponseType(typeof(BaseResponse<CourseDetailsDto>), StatusCodes.Status200OK)]
@@ -125,6 +135,16 @@ namespace Elearn.WebAPI.Controllers
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _courseService.DeleteCourseAsync(id);
+            return HandleResponse(result);
+        }
+        #endregion
+
+        #region Index
+        [HttpPost("index")]
+        [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> IndexCourses()
+        {
+            var result = await _courseService.IndexAllCoursesAsync();
             return HandleResponse(result);
         }
         #endregion

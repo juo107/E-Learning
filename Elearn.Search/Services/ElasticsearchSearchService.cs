@@ -16,7 +16,8 @@ namespace Elearn.Search.Services
         public ElasticsearchSearchService(IOptions<ElasticsearchOptions> options)
         {
             var opts = options.Value;
-            var settings = new ElasticsearchClientSettings(new Uri(opts.Url));
+            var settings = new ElasticsearchClientSettings(new Uri(opts.Url))
+                .DefaultFieldNameInferrer(p => p); // Use field names as-is
 
             if (!string.IsNullOrWhiteSpace(opts.Username) && !string.IsNullOrWhiteSpace(opts.Password))
             {
@@ -84,7 +85,7 @@ namespace Elearn.Search.Services
         public async Task IndexAsync<T>(T document, string? index = null) where T : class
         {
             var targetIndex = index ?? _defaultIndex;
-            var response = await _client.IndexAsync(document, i => i.Index(targetIndex));
+            var response = await _client.IndexAsync(document, targetIndex);
             if (!response.IsValidResponse)
             {
                 throw new InvalidOperationException($"Failed to index document: {response.DebugInformation}");
@@ -102,7 +103,7 @@ namespace Elearn.Search.Services
         {
             var targetIndex = index ?? _defaultIndex;
             var response = await _client.SearchAsync<T>(s => s
-                .Index(targetIndex)
+                .Indices(targetIndex)
                 .Query(q => q
                     .QueryString(qs => qs.Query(query))));
 
@@ -129,7 +130,7 @@ namespace Elearn.Search.Services
             var targetIndex = index ?? _defaultIndex;
 
             var response = await _client.SearchAsync<Models.CourseSearchDocument>(s => s
-                .Index(targetIndex)
+                .Indices(targetIndex)
                 .Size(size)
                 .Query(q => q.MatchPhrasePrefix(m => m
                     .Field("title")

@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using Elearn.Application.Validators;
 
 namespace Elearn.Application.Validations
 {
@@ -12,6 +13,8 @@ namespace Elearn.Application.Validations
             services.AddScoped<IValidator<Elearn.Application.DTOs.Category.UpdateCategoryDto>, UpdateCategoryValidator>();
             services.AddScoped<IValidator<Elearn.Application.DTOs.Course.CreateCourseDto>, CreateCourseValidator>();
             services.AddScoped<IValidator<Elearn.Application.DTOs.Course.UpdateCourseDto>, UpdateCourseValidator>();
+            services.AddScoped<IValidator<Elearn.Application.DTOs.CourseMedia.CreateCourseMediaDto>, CreateCourseMediaValidator>();
+            services.AddScoped<IValidator<Elearn.Application.DTOs.CourseMedia.UpdateCourseMediaDto>, UpdateCourseMediaValidator>();
 
             return services;
         }

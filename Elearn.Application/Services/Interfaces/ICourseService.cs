@@ -16,6 +16,7 @@ namespace Elearn.Application.Services.Interfaces
         Task<BaseResponse<IEnumerable<CourseDto>>> GetCoursesByCategoryAsync(Guid categoryId);
         Task<BaseResponse<IEnumerable<CourseDto>>> SearchCoursesAsync(string keyword);
         Task<BaseResponse<IEnumerable<string>>> AutocompleteCoursesAsync(string prefix, int size = 10);
+        Task<BaseResponse<bool>> IndexAllCoursesAsync();
         Task<bool> CourseExistsAsync(Guid id);
         Task<bool> CourseCodeExistsAsync(string courseCode);
     }

@@ -11,5 +11,13 @@
         // Foreign key to Category
         public Guid? CategoryId { get; set; }
         public Category? Category { get; set; }
+        
+        // Discount fields
+        public float? DiscountPercent { get; set; }
+        public decimal? FinalPrice { get; set; }
+        public DateTime? DiscountExpiresAt { get; set; }
+        
+        // Navigation property to CourseMedia
+        public ICollection<CourseMedia> CourseMedias { get; set; } = new List<CourseMedia>();
     }
 }

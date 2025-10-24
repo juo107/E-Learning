@@ -8,8 +8,8 @@ namespace Elearn.Infrastructure.Repository.Implementations
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private readonly ElearnDbContext _context;
-        private readonly DbSet<T> _dbSet;
+        protected readonly ElearnDbContext _context;
+        protected readonly DbSet<T> _dbSet;
 
         public GenericRepository(ElearnDbContext context)
         {

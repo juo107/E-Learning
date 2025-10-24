@@ -11,5 +11,13 @@
         public Guid? CategoryId { get; set; }
         public string? CategoryName { get; set; }
         public DateTime CreatedAt { get; set; }
+        public float? DiscountPercent { get; set; }
+        public decimal? FinalPrice { get; set; }
+        public DateTime? DiscountExpiresAt { get; set; }
+        
+        // Media fields from CourseMedia
+        public string? ThumbnailUrl { get; set; }
+        public string? PrimaryImageUrl { get; set; }
+        public string? PromoVideoUrl { get; set; }
     }
 }

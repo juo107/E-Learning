@@ -11,6 +11,7 @@ namespace Elearn.Application
         {
             services.AddScoped<ICourseService, CourseService>();
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<ICourseMediaService, CourseMediaService>();
             
             // Đăng ký validators
             services.AddValidators();

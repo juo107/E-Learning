@@ -40,7 +40,7 @@ namespace Elearn.Application.Services.Implementations
                     return BaseResponse<IEnumerable<CategoryDto>>.Ok(cachedCategories, "Categories retrieved from cache");
                 }
 
-                var categories = await _unitOfWork.Categories.GetAllAsync();
+                var categories = await _unitOfWork.Categories.GetAllWithIncludesAsync(c => c.SubCategories, c => c.Courses);
                 
                 // Apply filtering by keyword if provided
                 if (!string.IsNullOrWhiteSpace(parameters.Keyword))

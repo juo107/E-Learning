@@ -15,5 +15,13 @@ namespace Elearn.Application.DTOs.Course
         public DateTime? UpdatedAt { get; set; }
         public string? UpdatedBy { get; set; }
         public bool IsDeleted { get; set; }
+        public float? DiscountPercent { get; set; }
+        public decimal? FinalPrice { get; set; }
+        public DateTime? DiscountExpiresAt { get; set; }
+        
+        // Media fields from CourseMedia
+        public string? ThumbnailUrl { get; set; }
+        public string? PrimaryImageUrl { get; set; }
+        public string? PromoVideoUrl { get; set; }
     }
 }

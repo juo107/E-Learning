@@ -10,12 +10,14 @@ namespace Elearn.Infrastructure.Repository
         private readonly ElearnDbContext _context;
         public ICourseRepository Courses { get; }
         public ICategoryRepository Categories { get; }
+        public ICourseMediaRepository CourseMedias { get; }
 
         public UnitOfWork(ElearnDbContext context)
         {
             _context = context;
             Courses = new CourseRepository(_context);
             Categories = new CategoryRepository(_context);
+            CourseMedias = new CourseMediaRepository(_context);
         }
 
         public async Task<int> CompleteAsync()

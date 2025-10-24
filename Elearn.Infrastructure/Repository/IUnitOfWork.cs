@@ -7,6 +7,7 @@ namespace Elearn.Infrastructure.Repository
     {
         ICourseRepository Courses { get; }
         ICategoryRepository Categories { get; }
+        ICourseMediaRepository CourseMedias { get; }
         Task<int> CompleteAsync();
     }
 }
