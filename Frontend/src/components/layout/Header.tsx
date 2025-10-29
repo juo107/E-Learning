@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import GlobalSearch from '../search/GlobalSearch';
 import MegaCategories from './MegaCategories';
 import { useTranslation } from 'react-i18next';
-import { ThemeToggleSimple } from '../ui/ThemeToggle';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function Header() {
@@ -56,7 +55,14 @@ export default function Header() {
       <div className="w-full px-4 h-14 flex items-center gap-4">
         {/* Left cluster */}
         <div className="flex items-center gap-3 shrink-0">
-          <Link to="/" className="font-bold text-lg">{t('appName')}</Link>
+          <Link
+            to="/"
+            className="text-lg font-extrabold tracking-tight select-none bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent hover:from-indigo-300 hover:via-fuchsia-300 hover:to-cyan-300 transition-colors"
+            aria-label={t('appName')}
+            title={t('appName')}
+          >
+            {t('appName')}
+          </Link>
           {/* Categories mega menu */}
           <MegaCategories />
         </div>
@@ -98,7 +104,6 @@ export default function Header() {
               </Link>
             </>
           )}
-          <ThemeToggleSimple />
           <button onClick={toggleLang} aria-label="Language" className="px-2 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 flex items-center gap-1">
             <Globe className="size-4" /> {lang}
           </button>

@@ -66,7 +66,12 @@ namespace Elearn.Application.Mapping
                 .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
                 .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
                 .ForMember(dest => dest.DurationInMinutes, opt => opt.Ignore())
-                .ForMember(dest => dest.Category, opt => opt.Ignore());
+                .ForMember(dest => dest.Category, opt => opt.Ignore())
+                // Avoid unintended reset when DTO omits these optional fields
+                .ForMember(dest => dest.Level, opt => opt.Ignore())
+                .ForMember(dest => dest.Language, opt => opt.Ignore())
+                .ForMember(dest => dest.IsPublished, opt => opt.Ignore())
+                .ForMember(dest => dest.PublishedAt, opt => opt.Ignore());
 
             // Category mappings - AutoMapper sẽ tự động map các property cùng tên
             CreateMap<Category, CategoryDto>()

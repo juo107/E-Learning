@@ -4,6 +4,12 @@ type Props = {
   categoryId?: string;
   categories?: Array<{ id: string; name: string }>;
   onCategoryChange?: (v: string) => void;
+  level?: 'Beginner'|'Intermediate'|'Advanced'|'';
+  onLevelChange?: (v: 'Beginner'|'Intermediate'|'Advanced'|'' ) => void;
+  language?: 'Vi'|'En'|'';
+  onLanguageChange?: (v: 'Vi'|'En'|'' ) => void;
+  isPublished?: 'all'|'published'|'unpublished';
+  onIsPublishedChange?: (v: 'all'|'published'|'unpublished') => void;
   minPrice?: number;
   onMinPriceChange?: (v: number) => void;
   maxPrice?: number;
@@ -21,6 +27,7 @@ type Props = {
 
 export default function FilterBar({
   query, onQueryChange, categoryId, categories, onCategoryChange, 
+  level, onLevelChange, language, onLanguageChange, isPublished, onIsPublishedChange,
   minPrice, onMinPriceChange, maxPrice, onMaxPriceChange,
   minDuration, onMinDurationChange, maxDuration, onMaxDurationChange,
   sortBy, onSortByChange, isDescending, onIsDescendingChange, onReset,
@@ -45,6 +52,22 @@ export default function FilterBar({
           ))}
         </select>
       )}
+      <select value={level ?? ''} onChange={(e) => onLevelChange?.(e.target.value as any)} className="rounded-full border border-gray-200 dark:border-gray-800 px-3 py-2 bg-white dark:bg-gray-950 focus:outline-none focus:border-indigo-400">
+        <option value="">Mọi trình độ</option>
+        <option value="Beginner">Beginner</option>
+        <option value="Intermediate">Intermediate</option>
+        <option value="Advanced">Advanced</option>
+      </select>
+      <select value={language ?? ''} onChange={(e) => onLanguageChange?.(e.target.value as any)} className="rounded-full border border-gray-200 dark:border-gray-800 px-3 py-2 bg-white dark:bg-gray-950 focus:outline-none focus:border-indigo-400">
+        <option value="">Mọi ngôn ngữ</option>
+        <option value="Vi">Tiếng Việt</option>
+        <option value="En">English</option>
+      </select>
+      <select value={isPublished ?? 'all'} onChange={(e) => onIsPublishedChange?.(e.target.value as any)} className="rounded-full border border-gray-200 dark:border-gray-800 px-3 py-2 bg-white dark:bg-gray-950 focus:outline-none focus:border-indigo-400">
+        <option value="all">Tất cả</option>
+        <option value="published">Đã public</option>
+        <option value="unpublished">Chưa public</option>
+      </select>
       <div className="flex items-center gap-2">
         <input
           type="number"

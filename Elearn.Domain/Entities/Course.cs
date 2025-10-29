@@ -1,4 +1,6 @@
-﻿namespace Elearn.Domain.Entities
+﻿using Elearn.Domain.Entities.Enums;
+
+namespace Elearn.Domain.Entities
 {
     public class Course : BaseEntity
     {
@@ -8,9 +10,19 @@
         public decimal Price { get; set; }
         public int DurationInMinutes { get; set; }
         
+        // Course difficulty level
+        public CourseLevel Level { get; set; } = CourseLevel.Beginner;
+
+        // Course language (vi/en)
+        public CourseLanguage Language { get; set; } = CourseLanguage.Vi;
+        
         // Foreign key to Category
         public Guid? CategoryId { get; set; }
         public Category? Category { get; set; }
+        
+        // Publication state
+        public bool IsPublished { get; set; } = false;
+        public DateTime? PublishedAt { get; set; }
         
         // Discount fields
         public float? DiscountPercent { get; set; }

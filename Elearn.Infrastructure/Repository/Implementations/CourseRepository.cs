@@ -29,6 +29,19 @@ namespace Elearn.Infrastructure.Repository.Implementations
         }
 
         /// <summary>
+        /// Lấy danh sách course theo tiêu đề (so khớp chính xác, không phân biệt hoa thường).
+        /// </summary>
+        public async Task<IEnumerable<Course>> GetByTitleAsync(string title)
+        {
+            if (string.IsNullOrWhiteSpace(title)) return Enumerable.Empty<Course>();
+            var t = title.ToLower().Trim();
+            return await _context.Courses
+                .Include(c => c.Category)
+                .Where(c => !c.IsDeleted && c.Title.ToLower() == t)
+                .ToListAsync();
+        }
+
+        /// <summary>
         /// Kiểm tra course code có tồn tại (case-insensitive) - Logic nghiệp vụ đặc thù
         /// </summary>
         public async Task<bool> ExistsByCourseCodeAsync(string courseCode)

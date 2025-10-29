@@ -11,6 +11,14 @@ namespace Elearn.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            // Bộ nhớ trong tiến trình cho index nóng (IMemoryCache)
+            services.AddMemoryCache(options =>
+            {
+                // Giới hạn kích thước để tránh tiêu tốn RAM quá mức
+                options.SizeLimit = 1024; // đơn vị tuỳ entry khai báo (Size)
+                options.CompactionPercentage = 0.2;
+            });
+
             services.AddDbContext<ElearnDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
@@ -20,6 +28,8 @@ namespace Elearn.Infrastructure
                 options.Configuration = configuration.GetConnectionString("Redis");
             });
             services.AddScoped<IRedisCacheService, RedisCacheService>();
+            // In-memory index service
+            services.AddSingleton<IInMemoryIndexService, InMemoryIndexService>();
             
             // Test Redis connection on startup
             services.AddHostedService<RedisConnectionTestService>();

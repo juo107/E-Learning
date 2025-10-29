@@ -16,13 +16,15 @@ namespace Elearn.Application.Services.Implementations
         private readonly IMapper _mapper;
         private readonly ICourseSearchRepository _courseSearchRepository;
         private readonly IRedisCacheService _cache;
+        private readonly IInMemoryIndexService _memoryIndex;
 
-        public CourseService(IUnitOfWork unitOfWork, IMapper mapper, ICourseSearchRepository courseSearchRepository, IRedisCacheService cache)
+        public CourseService(IUnitOfWork unitOfWork, IMapper mapper, ICourseSearchRepository courseSearchRepository, IRedisCacheService cache, IInMemoryIndexService memoryIndex)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _courseSearchRepository = courseSearchRepository;
             _cache = cache;
+            _memoryIndex = memoryIndex;
         }
 
         public async Task<BaseResponse<IEnumerable<CourseDto>>> GetAllCoursesAsync(QueryParameters? parameters = null)
@@ -124,6 +126,13 @@ namespace Elearn.Application.Services.Implementations
                 course.CourseCode = courseCode;
                 course.CreatedAt = DateTime.UtcNow;
                 course.CreatedBy = "System"; // TODO: Get from current user context
+                // Level, Language đã được map từ dto
+                // Publication
+                if (dto.IsPublished)
+                {
+                    course.IsPublished = true;
+                    course.PublishedAt = dto.PublishedAt ?? DateTime.UtcNow;
+                }
 
                 await _unitOfWork.Courses.AddAsync(course);
                 await _unitOfWork.CompleteAsync();
@@ -144,6 +153,10 @@ namespace Elearn.Application.Services.Implementations
                 // Invalidate cache
                 await _cache.RemoveByPatternAsync("course:*");
                 await _cache.RemoveByPatternAsync("courses:*");
+
+                // Cập nhật index in-memory theo title & code
+                await _memoryIndex.SetCourseCodeIndexAsync(course.CourseCode, course.Id);
+                await _memoryIndex.AddCourseToTitleIndexAsync(course.Title, course.Id);
 
                 var courseDto = _mapper.Map<CourseDto>(course);
                 return BaseResponse<CourseDto>.Ok(courseDto, "Course created successfully");
@@ -172,10 +185,38 @@ namespace Elearn.Application.Services.Implementations
                 if (existing == null)
                     return BaseResponse<CourseDto>.Fail("Course not found");
 
+                // Track title cũ để cập nhật index in-memory
+                var oldTitle = existing.Title;
                 // Update properties
                 existing.Title = dto.Title;
                 existing.Description = dto.Description;
                 existing.Price = dto.Price;
+                if (dto.Level.HasValue)
+                {
+                    existing.Level = dto.Level.Value;
+                }
+                if (dto.Language.HasValue)
+                {
+                    existing.Language = dto.Language.Value;
+                }
+                if (dto.IsPublished.HasValue)
+                {
+                    existing.IsPublished = dto.IsPublished.Value;
+                    if (existing.IsPublished)
+                    {
+                        existing.PublishedAt = dto.PublishedAt ?? existing.PublishedAt ?? DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        // unpublish -> remove published date (optional policy)
+                        existing.PublishedAt = null;
+                    }
+                }
+                else if (dto.PublishedAt.HasValue)
+                {
+                    // allow updating PublishedAt explicitly
+                    existing.PublishedAt = dto.PublishedAt.Value;
+                }
                 existing.UpdatedAt = DateTime.UtcNow;
                 existing.UpdatedBy = "System"; // TODO: Get from current user context
 
@@ -198,6 +239,13 @@ namespace Elearn.Application.Services.Implementations
                 // Invalidate cache
                 await _cache.RemoveAsync($"course:{existing.Id}");
                 await _cache.RemoveByPatternAsync("courses:*");
+
+                // Cập nhật index in-memory theo title nếu đổi tên
+                if (!string.Equals(oldTitle, existing.Title, StringComparison.OrdinalIgnoreCase))
+                {
+                    await _memoryIndex.RemoveCourseFromTitleIndexAsync(oldTitle, existing.Id);
+                    await _memoryIndex.AddCourseToTitleIndexAsync(existing.Title, existing.Id);
+                }
 
                 var courseDto = _mapper.Map<CourseDto>(existing);
                 return BaseResponse<CourseDto>.Ok(courseDto, "Course updated successfully");
@@ -264,7 +312,23 @@ namespace Elearn.Application.Services.Implementations
         {
             try
             {
-                var course = await _unitOfWork.Courses.GetByCourseCodeAsync(courseCode);
+                // 1) Tra cứu nhanh courseId từ index trong bộ nhớ (nếu có)
+                var indexedId = await _memoryIndex.GetCourseIdByCodeAsync(courseCode);
+                Course? course = null;
+                if (indexedId.HasValue)
+                {
+                    course = await _unitOfWork.Courses.GetByIdWithIncludesAsync(indexedId.Value, c => c.Category, c => c.CourseMedias);
+                }
+
+                // 2) Nếu miss index, truy vấn theo courseCode và set index lại
+                if (course == null)
+                {
+                    course = await _unitOfWork.Courses.GetByCourseCodeAsync(courseCode);
+                    if (course != null)
+                    {
+                        await _memoryIndex.SetCourseCodeIndexAsync(courseCode, course.Id);
+                    }
+                }
                 if (course == null)
                     return BaseResponse<CourseDetailsDto>.Fail("Course not found");
 
@@ -274,6 +338,47 @@ namespace Elearn.Application.Services.Implementations
             catch (Exception ex)
             {
                 return BaseResponse<CourseDetailsDto>.Fail($"Error retrieving course: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Lấy danh sách khóa học theo tiêu đề (exact match, không phân biệt hoa thường) với index in-memory.
+        /// Luồng: thử lấy id list từ in-memory -> nếu miss thì DB -> lưu index.
+        /// </summary>
+        public async Task<BaseResponse<IEnumerable<CourseDto>>> GetCoursesByTitleAsync(string title)
+        {
+            try
+            {
+                List<Course> courses = new();
+                var indexedIds = await _memoryIndex.GetCourseIdsByTitleAsync(title);
+                if (indexedIds != null && indexedIds.Count > 0)
+                {
+                    // Lấy theo danh sách id (nên có phương thức repo batch-by-ids, tạm dùng từng cái)
+                    foreach (var id in indexedIds)
+                    {
+                        var c = await _unitOfWork.Courses.GetByIdWithIncludesAsync(id, x => x.Category, x => x.CourseMedias);
+                        if (c != null) courses.Add(c);
+                    }
+                }
+
+                if (courses.Count == 0)
+                {
+                    // Miss index -> DB
+                    var dbCourses = await _unitOfWork.Courses.GetByTitleAsync(title);
+                    courses = dbCourses.ToList();
+                    // Lưu index để lần sau truy vấn nhanh
+                    foreach (var c in courses)
+                    {
+                        await _memoryIndex.AddCourseToTitleIndexAsync(title, c.Id);
+                    }
+                }
+
+                var dtos = _mapper.Map<IEnumerable<CourseDto>>(courses);
+                return BaseResponse<IEnumerable<CourseDto>>.Ok(dtos, "Courses retrieved successfully");
+            }
+            catch (Exception ex)
+            {
+                return BaseResponse<IEnumerable<CourseDto>>.Fail($"Error retrieving courses by title: {ex.Message}");
             }
         }
 

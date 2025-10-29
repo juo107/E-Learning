@@ -1,4 +1,5 @@
 using Elearn.Application.DTOs.Course;
+using Elearn.Domain.Entities.Enums;
 using FluentValidation;
 
 namespace Elearn.Application.Validations
@@ -21,6 +22,19 @@ namespace Elearn.Application.Validations
             RuleFor(x => x.CategoryId)
                 .NotEmpty().WithMessage("Category is required.")
                 .When(x => x.CategoryId.HasValue);
+
+            RuleFor(x => x.Level)
+                .IsInEnum().WithMessage("Course level is invalid.")
+                .When(x => x.Level.HasValue);
+
+            RuleFor(x => x.Language)
+                .IsInEnum().WithMessage("Course language is invalid.")
+                .When(x => x.Language.HasValue);
+
+            RuleFor(x => x.PublishedAt)
+                .GreaterThan(DateTime.MinValue)
+                .When(x => x.PublishedAt.HasValue)
+                .WithMessage("PublishedAt is invalid.");
         }
     }
 }

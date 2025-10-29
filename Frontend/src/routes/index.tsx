@@ -7,6 +7,7 @@ import TestDashboard from '../pages/TestDashboard';
 import Settings from '../pages/Settings';
 import Profile from '../pages/Profile';
 import Layout from './Layout';
+import Maintenance from '../pages/Maintenance';
 import AdminLayout from './layout/AdminLayout';
 import InstructorLayout from './layout/InstructorLayout';
 import AdminDashboard from '../pages/admin/Dashboard';
@@ -32,8 +33,14 @@ import Press from '../pages/Press';
 import Partners from '../pages/Partners';
 import Investors from '../pages/Investors';
 import ProtectedRoute from '../components/ProtectedRoute';
+import ErrorPage from '../pages/ErrorPage';
+import Terms from '../pages/legal/Terms';
+import Privacy from '../pages/legal/Privacy';
+import Cookies from '../pages/legal/Cookies';
 
 export const router = createBrowserRouter([
+  // Maintenance standalone (không Header/Footer)
+  { path: '/maintenance', element: <Maintenance /> },
   {
     element: <Layout />,
     children: [
@@ -81,6 +88,12 @@ export const router = createBrowserRouter([
       { path: '/press', element: <Press /> },
       { path: '/partners', element: <Partners /> },
       { path: '/investors', element: <Investors /> },
+      // Legal
+      { path: '/legal/terms', element: <Terms /> },
+      { path: '/legal/privacy', element: <Privacy /> },
+      { path: '/legal/cookies', element: <Cookies /> },
+      // 404 - custom error page
+      { path: '*', element: <ErrorPage /> },
     ],
   },
   {

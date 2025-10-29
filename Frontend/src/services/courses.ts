@@ -110,6 +110,9 @@ export async function fetchCourses(page = 1, pageSize = 12, opts: {
   maxDuration?: number;
   sortBy?: string;
   isDescending?: boolean;
+  level?: 'Beginner'|'Intermediate'|'Advanced';
+  language?: 'Vi'|'En';
+  isPublished?: boolean;
 } = {}): Promise<Paginated<CourseCardDto>> {
   const params: any = { pageNumber: page, pageSize };
   if (opts.search) params.keyword = opts.search;
@@ -121,6 +124,9 @@ export async function fetchCourses(page = 1, pageSize = 12, opts: {
   if (opts.maxDuration != null) params.maxDurationInMinutes = opts.maxDuration;
   if (opts.sortBy) params.sortBy = opts.sortBy;
   if (opts.isDescending != null) params.isDescending = opts.isDescending;
+  if (opts.level) params.level = opts.level; // map trực tiếp enum tên
+  if (opts.language) params.language = opts.language; // Vi/En
+  if (opts.isPublished != null) params.isPublished = opts.isPublished;
   const res = await api.get(`/api/course`, { params }); // Changed from /api/courses to /api/course
   const raw = res.data;
   
@@ -152,15 +158,19 @@ export async function fetchCourses(page = 1, pageSize = 12, opts: {
     shortDescription: course.description || '',
     price: course.price || 0,
     discountPrice: course.finalPrice || null,
+    // map level/language từ backend
+    level: course.level,
+    language: course.language,
     averageRating: 0, // Backend doesn't have this yet
     ratingCount: 0, // Backend doesn't have this yet
     viewCount: 0, // Backend doesn't have this yet
     enrollmentCount: 0, // Backend doesn't have this yet
-    isPublished: true, // Backend doesn't have this yet
+    isPublished: course.isPublished ?? true,
     isFeatured: false, // Backend doesn't have this yet
     categoryName: course.categoryName,
     categoryId: course.categoryId,
     createdAt: course.createdAt,
+    publishedAt: course.publishedAt,
     thumbnailUrl: course.thumbnailUrl ?? null,
     // Media fields from CourseMedia
     primaryImageUrl: course.primaryImageUrl ?? null,
@@ -199,16 +209,17 @@ export async function fetchCourseById(id: string): Promise<CourseDetailDto> {
       description: course.description,
       price: course.price || 0,
       discountPrice: course.finalPrice || null,
+      level: course.level,
+      language: course.language,
+      isPublished: course.isPublished ?? true,
+      publishedAt: course.publishedAt,
       averageRating: 0, // Backend doesn't have this yet
       ratingCount: 0, // Backend doesn't have this yet
       viewCount: 0, // Backend doesn't have this yet
       enrollmentCount: 0, // Backend doesn't have this yet
-      isPublished: true, // Backend doesn't have this yet
       isFeatured: false, // Backend doesn't have this yet
       categoryName: course.categoryName,
       categoryId: course.categoryId,
-      level: undefined, // Backend doesn't have this yet
-      language: undefined, // Backend doesn't have this yet
       teacherName: undefined, // Backend doesn't have this yet
       createdAt: course.createdAt,
       updatedAt: course.updatedAt || course.createdAt,
@@ -378,8 +389,11 @@ export async function searchCourses(keyword: string): Promise<CourseCardDto[]> {
         title: course.title || '',
         description: course.description || '',
         price: course.price || 0,
-        durationInMinutes: course.durationInMinutes || 0,
+        // fields used by card mapping above
         categoryId: course.categoryId,
+        level: course.level,
+        language: course.language,
+        isPublished: course.isPublished ?? true,
         thumbnailUrl: course.thumbnailUrl,
         primaryImageUrl: course.primaryImageUrl,
         promoVideoUrl: course.promoVideoUrl,
@@ -414,6 +428,59 @@ export async function getAutocompleteSuggestions(prefix: string, size = 10): Pro
     return [];
   } catch (error) {
     console.error('Error getting autocomplete suggestions:', error);
+    return [];
+  }
+}
+
+// Fast-path: lấy theo mã khóa học (code)
+export async function fetchCourseByCode(courseCode: string): Promise<CourseDetailDto | null> {
+  try {
+    const res = await api.get(`/api/course/code/${encodeURIComponent(courseCode)}`);
+    const course = res.data?.data ?? res.data;
+    if (!course) return null;
+    return await fetchCourseById(course.id);
+  } catch {
+    return null;
+  }
+}
+
+// Fast-path: lấy danh sách theo tên (exact)
+export async function fetchCoursesByTitleExact(title: string): Promise<CourseCardDto[]> {
+  try {
+    const res = await api.get('/api/course/by-title', { params: { title } });
+    const raw = res.data?.data ?? res.data;
+    if (Array.isArray(raw)) {
+      return raw.map((course: any) => ({
+        courseId: course.id,
+        title: course.title || '',
+        shortDescription: course.description || '',
+        price: course.price || 0,
+        discountPrice: course.finalPrice || null,
+        level: course.level,
+        language: course.language,
+        isPublished: course.isPublished ?? true,
+        averageRating: 0,
+        ratingCount: 0,
+        viewCount: 0,
+        enrollmentCount: 0,
+        isFeatured: false,
+        categoryName: course.categoryName,
+        categoryId: course.categoryId,
+        createdAt: course.createdAt,
+        publishedAt: course.publishedAt,
+        thumbnailUrl: course.thumbnailUrl ?? null,
+        primaryImageUrl: course.primaryImageUrl ?? null,
+        promoVideoUrl: course.promoVideoUrl ?? null,
+        discountPercent: course.discountPercent ?? null,
+        finalPrice: course.finalPrice ?? null,
+        discountExpiresAt: course.discountExpiresAt ?? null,
+        hasDiscount: !!(course.discountPercent != null && course.discountPercent > 0),
+        effectivePrice: course.finalPrice ?? course.price ?? 0,
+        currency: 'VND'
+      }));
+    }
+    return [];
+  } catch {
     return [];
   }
 }

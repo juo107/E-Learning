@@ -5,6 +5,8 @@ import {
   fetchCoursesByCategory, 
   fetchCategoryStats,
   searchCourses,
+  fetchCourseByCode,
+  fetchCoursesByTitleExact,
   type CourseCardDto, 
   type Paginated 
 } from '../services/courses';
@@ -31,6 +33,9 @@ export default function Courses() {
   const [maxDuration, setMaxDuration] = useState<number | undefined>(undefined);
   const [sortBy, setSortBy] = useState<string>('createdAt');
   const [isDescending, setIsDescending] = useState<boolean>(true);
+  const [level, setLevel] = useState<'Beginner'|'Intermediate'|'Advanced'|''>('');
+  const [language, setLanguage] = useState<'Vi'|'En'|''>('');
+  const [publishedFilter, setPublishedFilter] = useState<'all'|'published'|'unpublished'>('all');
   const [categoryOptions, setCategoryOptions] = useState<Array<{ id: string; name: string }>>([]);
   const [categoryStats, setCategoryStats] = useState<any>(null);
 
@@ -83,20 +88,85 @@ export default function Courses() {
         // Check if categoryId is a valid GUID
         const isValidGuid = categoryId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(categoryId);
         
-        // Use Elasticsearch search if there's a search keyword
+        // Search logic with fast-path by code/title exact
         const searchKeyword = query || searchParam;
         if (searchKeyword && searchKeyword.trim().length > 0) {
-          const searchResults = await searchCourses(searchKeyword);
-          // Convert search results to paginated format
-          res = {
-            data: searchResults,
-            pageNumber: 1,
-            pageSize: searchResults.length,
-            totalCount: searchResults.length,
-            totalPages: 1,
-            hasPreviousPage: false,
-            hasNextPage: false
-          };
+          const normalized = searchKeyword.trim();
+          // try code first
+          if (/^[A-Za-z0-9_\-]+$/.test(normalized)) {
+            const byCode = await fetchCourseByCode(normalized);
+            if (byCode) {
+              res = {
+                data: [{
+                  courseId: (byCode.courseId as unknown as string) || '',
+                  title: byCode.title,
+                  shortDescription: byCode.shortDescription,
+                  price: byCode.price,
+                  discountPrice: byCode.discountPrice,
+                  level: byCode.level as any,
+                  language: byCode.language as any,
+                  isPublished: byCode.isPublished,
+                  averageRating: 0,
+                  ratingCount: 0,
+                  viewCount: 0,
+                  enrollmentCount: 0,
+                  isFeatured: false,
+                  categoryName: byCode.categoryName,
+                  categoryId: (byCode.categoryId as unknown as string) || undefined,
+                  createdAt: byCode.createdAt,
+                  publishedAt: byCode.publishedAt,
+                  thumbnailUrl: byCode.thumbnailUrl || undefined,
+                  primaryImageUrl: undefined,
+                  promoVideoUrl: undefined,
+                  discountPercent: undefined,
+                  finalPrice: byCode.discountPrice ?? byCode.price,
+                  discountExpiresAt: undefined,
+                  hasDiscount: (byCode.discountPrice ?? 0) > 0 && (byCode.discountPrice ?? 0) < (byCode.price ?? 0),
+                  effectivePrice: byCode.discountPrice ?? byCode.price ?? 0,
+                  currency: 'VND'
+                }],
+                pageNumber: 1,
+                pageSize: 1,
+                totalCount: 1,
+                totalPages: 1,
+                hasPreviousPage: false,
+                hasNextPage: false
+              };
+            } else {
+              const exact = await fetchCoursesByTitleExact(normalized);
+              if (exact.length > 0) {
+                res = { data: exact, pageNumber: 1, pageSize: exact.length, totalCount: exact.length, totalPages: 1, hasPreviousPage: false, hasNextPage: false };
+              } else {
+                const searchResults = await searchCourses(normalized);
+                res = {
+                  data: searchResults,
+                  pageNumber: 1,
+                  pageSize: searchResults.length,
+                  totalCount: searchResults.length,
+                  totalPages: 1,
+                  hasPreviousPage: false,
+                  hasNextPage: false
+                };
+              }
+            }
+          } else {
+            // If not a code-like string, try exact title then fallback ES
+            const exact = await fetchCoursesByTitleExact(normalized);
+            if (exact.length > 0) {
+              res = { data: exact, pageNumber: 1, pageSize: exact.length, totalCount: exact.length, totalPages: 1, hasPreviousPage: false, hasNextPage: false };
+            } else {
+              const searchResults = await searchCourses(normalized);
+              res = {
+                data: searchResults,
+                pageNumber: 1,
+                pageSize: searchResults.length,
+                totalCount: searchResults.length,
+                totalPages: 1,
+                hasPreviousPage: false,
+                hasNextPage: false
+              };
+            }
+          }
         } else {
           console.log('📊 Using database API with filters');
           // Use backend API with all filter parameters
@@ -108,7 +178,10 @@ export default function Courses() {
             minDuration: minDuration,
             maxDuration: maxDuration,
             sortBy: sortBy,
-            isDescending: isDescending
+            isDescending: isDescending,
+            level: (level || undefined) as any,
+            language: (language || undefined) as any,
+            isPublished: publishedFilter === 'all' ? undefined : (publishedFilter === 'published')
           });
         }
         
@@ -139,7 +212,7 @@ export default function Courses() {
 
     return () => { cancelled = true; controller.abort(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, categoryParam, categoryId, searchParam, query, minPrice, maxPrice, minDuration, maxDuration, sortBy, isDescending]);
+  }, [page, categoryParam, categoryId, searchParam, query, minPrice, maxPrice, minDuration, maxDuration, sortBy, isDescending, level, language, publishedFilter]);
 
   // Derived filtered list for current page (must run on every render to keep hooks order)
   const visible = useMemo(() => {
@@ -242,6 +315,12 @@ export default function Courses() {
         onMinDurationChange={setMinDuration}
         maxDuration={maxDuration}
         onMaxDurationChange={setMaxDuration}
+        level={level}
+        onLevelChange={setLevel as any}
+        language={language}
+        onLanguageChange={setLanguage as any}
+        isPublished={publishedFilter}
+        onIsPublishedChange={setPublishedFilter as any}
         sortBy={sortBy}
         onSortByChange={setSortBy}
         isDescending={isDescending}
@@ -255,6 +334,9 @@ export default function Courses() {
           setMaxDuration(undefined); 
           setSortBy('createdAt'); 
           setIsDescending(true); 
+          setLevel('');
+          setLanguage('');
+          setPublishedFilter('all');
           cacheRef.current = new Map(); 
           setPage(1); 
         }}

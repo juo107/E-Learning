@@ -9,6 +9,10 @@ namespace Elearn.Infrastructure.Repository.Interfaces
         /// Tìm course theo course code - Logic nghiệp vụ đặc thù
         /// </summary>
         Task<Course?> GetByCourseCodeAsync(string courseCode);
+        /// <summary>
+        /// Lấy danh sách course theo tiêu đề (so khớp chính xác, không phân biệt hoa thường).
+        /// </summary>
+        Task<IEnumerable<Course>> GetByTitleAsync(string title);
         
         /// <summary>
         /// Kiểm tra course code có tồn tại - Logic nghiệp vụ đặc thù

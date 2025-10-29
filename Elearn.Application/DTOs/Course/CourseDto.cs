@@ -1,4 +1,6 @@
-﻿namespace Elearn.Application.DTOs.Course
+﻿using Elearn.Domain.Entities.Enums;
+
+namespace Elearn.Application.DTOs.Course
 {
     public class CourseDto
     {
@@ -8,6 +10,10 @@
         public string? Description { get; set; }
         public decimal Price { get; set; }
         public int DurationInMinutes { get; set; }
+        public CourseLevel Level { get; set; }
+        public CourseLanguage Language { get; set; }
+        public bool IsPublished { get; set; }
+        public DateTime? PublishedAt { get; set; }
         public Guid? CategoryId { get; set; }
         public string? CategoryName { get; set; }
         public DateTime CreatedAt { get; set; }

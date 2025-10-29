@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
-type Theme = 'light' | 'dark' | 'system';
+type Theme = 'dark';
 
 interface ThemeContextType {
   theme: Theme;
@@ -16,30 +16,16 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const stored = localStorage.getItem('theme') as Theme;
-    return stored || 'system';
-  });
+  const [theme, setTheme] = useState<Theme>('dark');
 
   const [isDark, setIsDark] = useState<boolean>(false);
 
   useEffect(() => {
     const updateTheme = () => {
       const root = document.documentElement;
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      
-      let shouldBeDark = false;
-      
-      if (theme === 'dark') {
-        shouldBeDark = true;
-      } else if (theme === 'light') {
-        shouldBeDark = false;
-      } else { // system
-        shouldBeDark = systemPrefersDark;
-      }
-
-      setIsDark(shouldBeDark);
-      
+      // Luôn dùng dark theme cho phong cách công nghệ
+      const shouldBeDark = true;
+      setIsDark(true);
       if (shouldBeDark) {
         root.classList.add('dark');
       } else {
@@ -48,26 +34,15 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     };
 
     updateTheme();
-    localStorage.setItem('theme', theme);
+    localStorage.setItem('theme', 'dark');
 
     // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
-      if (theme === 'system') {
-        updateTheme();
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    // Không cần lắng nghe thay đổi system vì luôn dark
+    return () => {};
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prev => {
-      if (prev === 'light') return 'dark';
-      if (prev === 'dark') return 'system';
-      return 'light';
-    });
+    // No-op: luôn dark
   };
 
   const value: ThemeContextType = {

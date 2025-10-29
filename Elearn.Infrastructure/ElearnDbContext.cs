@@ -76,6 +76,8 @@ namespace Elearn.Infrastructure.Data
                 entity.Property(c => c.Price).HasColumnType("decimal(18,2)");
                 entity.Property(c => c.FinalPrice).HasColumnType("decimal(18,2)");
                 entity.Property(c => c.DurationInMinutes).IsRequired();
+                entity.Property(c => c.Level).HasConversion<int>();
+                entity.Property(c => c.Language).HasConversion<int>();
 
                 // Configure relationship with Category
                 entity.HasOne(c => c.Category)
@@ -83,6 +85,19 @@ namespace Elearn.Infrastructure.Data
                     .HasForeignKey(c => c.CategoryId)
                     .IsRequired(false)
                     .OnDelete(DeleteBehavior.SetNull);
+
+                // Indexes for frequent filters/sorts
+                entity.HasIndex(c => c.CourseCode).IsUnique();
+                entity.HasIndex(c => new { c.CategoryId, c.IsPublished, c.CreatedAt })
+                      .HasDatabaseName("IX_Course_Category_IsPublished_CreatedAt");
+                entity.HasIndex(c => new { c.IsPublished, c.CreatedAt })
+                      .HasDatabaseName("IX_Course_IsPublished_CreatedAt");
+                entity.HasIndex(c => new { c.Level, c.Language, c.IsPublished })
+                      .HasDatabaseName("IX_Course_Level_Language_IsPublished");
+                entity.HasIndex(c => new { c.IsPublished, c.Price })
+                      .HasDatabaseName("IX_Course_IsPublished_Price");
+                entity.HasIndex(c => c.PublishedAt)
+                      .HasDatabaseName("IX_Course_PublishedAt");
             });
 
             // Configure Category entity
@@ -94,6 +109,10 @@ namespace Elearn.Infrastructure.Data
 
                 // Configure unique constraint on Name
                 entity.HasIndex(c => c.Name).IsUnique();
+
+                // Hierarchy & lookups
+                entity.HasIndex(c => c.ParentCategoryId)
+                      .HasDatabaseName("IX_Category_ParentCategoryId");
             });
 
             // Configure CourseMedia entity

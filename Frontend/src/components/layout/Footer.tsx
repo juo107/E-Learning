@@ -192,13 +192,13 @@ export default function Footer() {
               </div>
             </div>
             <div className="flex items-center space-x-6 text-sm">
-              <Link to="/terms" className="text-gray-600 dark:text-gray-400 hover:text-indigo-600 transition-colors">
+              <Link to="/legal/terms" className="text-gray-600 dark:text-gray-400 hover:text-indigo-600 transition-colors">
                 Điều khoản
               </Link>
-              <Link to="/privacy" className="text-gray-600 dark:text-gray-400 hover:text-indigo-600 transition-colors">
+              <Link to="/legal/privacy" className="text-gray-600 dark:text-gray-400 hover:text-indigo-600 transition-colors">
                 Bảo mật
               </Link>
-              <Link to="/cookies" className="text-gray-600 dark:text-gray-400 hover:text-indigo-600 transition-colors">
+              <Link to="/legal/cookies" className="text-gray-600 dark:text-gray-400 hover:text-indigo-600 transition-colors">
                 Cookie
               </Link>
             </div>
