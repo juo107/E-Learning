@@ -1,9 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Elearn.Domain.Entities;
+using Elearn.Domain.Entities.Identity;
 
 namespace Elearn.Infrastructure.Data
 {
-    public class ElearnDbContext : DbContext
+    public class ElearnDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
     {
         public ElearnDbContext(DbContextOptions<ElearnDbContext> options)
             : base(options)
@@ -13,6 +16,10 @@ namespace Elearn.Infrastructure.Data
         public DbSet<Course> Courses { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<CourseMedia> CourseMedias { get; set; }
+        public DbSet<ApplicationPermission> ApplicationPermissions { get; set; }
+        public DbSet<ApplicationRolePermission> ApplicationRolePermissions { get; set; }
+        public DbSet<InstructorProfile> InstructorProfiles { get; set; }
+        public DbSet<StudentProfile> StudentProfiles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -137,6 +144,76 @@ namespace Elearn.Infrastructure.Data
                 entity.HasIndex(cm => cm.MediaType);
                 entity.HasIndex(cm => cm.Status);
                 entity.HasIndex(cm => cm.IsPrimary);
+            });
+
+            // Configure ApplicationPermission entity
+            modelBuilder.Entity<ApplicationPermission>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.Name).IsRequired().HasMaxLength(255);
+                entity.Property(p => p.Description).HasMaxLength(500);
+                entity.Property(p => p.Module).IsRequired().HasMaxLength(100);
+                entity.HasIndex(p => p.Name).IsUnique();
+            });
+
+            // Configure ApplicationRolePermission (many-to-many join table)
+            modelBuilder.Entity<ApplicationRolePermission>(entity =>
+            {
+                entity.HasKey(rp => new { rp.RoleId, rp.PermissionId });
+                
+                entity.HasOne(rp => rp.Role)
+                    .WithMany(r => r.RolePermissions)
+                    .HasForeignKey(rp => rp.RoleId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(rp => rp.Permission)
+                    .WithMany(p => p.RolePermissions)
+                    .HasForeignKey(rp => rp.PermissionId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(rp => rp.RoleId);
+                entity.HasIndex(rp => rp.PermissionId);
+            });
+
+            // Configure ApplicationUser
+            modelBuilder.Entity<ApplicationUser>(entity =>
+            {
+                entity.Property(u => u.FullName).IsRequired().HasMaxLength(200);
+                entity.Property(u => u.AvatarUrl).HasMaxLength(1000);
+                entity.Property(u => u.UserType).HasConversion<int>();
+
+                entity.HasOne(u => u.InstructorProfile)
+                    .WithOne(ip => ip.ApplicationUser)
+                    .HasForeignKey<InstructorProfile>(ip => ip.ApplicationUserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(u => u.StudentProfile)
+                    .WithOne(sp => sp.ApplicationUser)
+                    .HasForeignKey<StudentProfile>(sp => sp.ApplicationUserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure InstructorProfile
+            modelBuilder.Entity<InstructorProfile>(entity =>
+            {
+                entity.HasKey(ip => ip.Id);
+                entity.Property(ip => ip.ApplicationUserId).IsRequired().HasMaxLength(450);
+                entity.Property(ip => ip.Bio).HasMaxLength(2000);
+                entity.Property(ip => ip.Profession).HasMaxLength(200);
+                entity.Property(ip => ip.Rating).HasColumnType("decimal(3,2)").HasDefaultValue(0);
+
+                entity.HasIndex(ip => ip.ApplicationUserId).IsUnique();
+            });
+
+            // Configure StudentProfile
+            modelBuilder.Entity<StudentProfile>(entity =>
+            {
+                entity.HasKey(sp => sp.Id);
+                entity.Property(sp => sp.ApplicationUserId).IsRequired().HasMaxLength(450);
+
+                entity.HasIndex(sp => sp.ApplicationUserId).IsUnique();
             });
         }
     }

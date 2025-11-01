@@ -31,6 +31,8 @@ namespace Elearn.Application.Common
         public int? MaxDurationInMinutes { get; set; }
         public DateTime? CreatedFrom { get; set; }
         public DateTime? CreatedTo { get; set; }
+        public bool OnlyPublished { get; set; } = false;
+        public bool IncludeDeleted { get; set; } = false;
     }
 }
 

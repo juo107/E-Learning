@@ -36,8 +36,8 @@ namespace Elearn.Application.Services.Implementations
                     parameters = new QueryParameters();
                 }
 
-                // Create cache key based on parameters
-                var cacheKey = $"courses:list:{parameters.PageNumber}:{parameters.PageSize}:{parameters.Keyword}:{parameters.CategoryId}:{parameters.MinPrice}:{parameters.MaxPrice}:{parameters.SortBy}:{parameters.IsDescending}";
+                // Create cache key based on parameters (including OnlyPublished and IncludeDeleted to separate cache)
+                var cacheKey = $"courses:list:{parameters.PageNumber}:{parameters.PageSize}:{parameters.Keyword}:{parameters.CategoryId}:{parameters.MinPrice}:{parameters.MaxPrice}:{parameters.SortBy}:{parameters.IsDescending}:published:{parameters.OnlyPublished}:deleted:{parameters.IncludeDeleted}";
                 
                 // Try to get from cache first
                 var cachedCourses = await _cache.GetAsync<IEnumerable<CourseDto>>(cacheKey);
@@ -59,7 +59,9 @@ namespace Elearn.Application.Services.Implementations
                     parameters.CreatedFrom,
                     parameters.CreatedTo,
                     parameters.SortBy,
-                    parameters.IsDescending);
+                    parameters.IsDescending,
+                    parameters.OnlyPublished,
+                    parameters.IncludeDeleted);
 
                 var courseDtos = _mapper.Map<IEnumerable<CourseDto>>(items);
                 

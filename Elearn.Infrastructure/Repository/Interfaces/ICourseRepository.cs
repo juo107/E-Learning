@@ -69,6 +69,8 @@ namespace Elearn.Infrastructure.Repository.Interfaces
             DateTime? createdFrom = null,
             DateTime? createdTo = null,
             string? sortBy = null,
-            bool isDescending = true);
+            bool isDescending = true,
+            bool onlyPublished = false,
+            bool includeDeleted = false);
     }
 }

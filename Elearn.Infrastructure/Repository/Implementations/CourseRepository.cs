@@ -159,13 +159,32 @@ namespace Elearn.Infrastructure.Repository.Implementations
             DateTime? createdFrom = null,
             DateTime? createdTo = null,
             string? sortBy = null,
-            bool isDescending = true)
+            bool isDescending = true,
+            bool onlyPublished = false,
+            bool includeDeleted = false)
         {
             var query = _context.Courses
                 .Include(c => c.Category)
                 .Include(c => c.CourseMedias)
-                .Where(c => !c.IsDeleted)
                 .AsQueryable();
+
+            // Filter by IsDeleted based on includeDeleted parameter
+            if (includeDeleted)
+            {
+                // If includeDeleted is true, only return deleted courses
+                query = query.Where(c => c.IsDeleted);
+            }
+            else
+            {
+                // If includeDeleted is false, exclude deleted courses (default behavior)
+                query = query.Where(c => !c.IsDeleted);
+            }
+
+            // Filter by IsPublished if onlyPublished is true (for public API)
+            if (onlyPublished)
+            {
+                query = query.Where(c => c.IsPublished);
+            }
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {

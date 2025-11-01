@@ -67,7 +67,8 @@ namespace Elearn.WebAPI.Controllers
                 CreatedFrom = createdFrom,
                 CreatedTo = createdTo,
                 SortBy = sortBy,
-                IsDescending = isDescending
+                IsDescending = isDescending,
+                OnlyPublished = true // Public API only returns published courses
             };
 
             var result = await _courseService.GetAllCoursesAsync(query);

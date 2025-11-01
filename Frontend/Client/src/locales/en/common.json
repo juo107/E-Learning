@@ -1,0 +1,1259 @@
+{
+  "appName": "E-Learning",
+  "navigation": {
+    "home": "Home",
+    "courses": "Courses",
+    "dashboard": "Dashboard",
+    "admin": "Admin",
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Logout",
+    "account": "Account",
+    "settings": "Settings",
+    "wishlist": "Wishlist",
+    "cart": "Cart",
+    "explore": "Explore"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "fullName": "Full Name",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "signInWith": "Sign in with",
+    "orContinueWith": "or continue with email",
+    "welcomeBack": "Welcome back. Please enter your details.",
+    "createAccount": "Create your account",
+    "joinUs": "Join us today! It's free and only takes a few minutes.",
+    "loginSuccess": "Login successful",
+    "registerSuccess": "Registration successful",
+    "loginError": "Login failed. Please try again.",
+    "registerError": "Registration failed. Please try again.",
+    "invalidCredentials": "Invalid email or password",
+    "emailRequired": "Please enter your email",
+    "passwordRequired": "Please enter your password",
+    "emailInvalid": "Please enter a valid email",
+    "passwordTooShort": "Password must be at least 6 characters",
+    "passwordsNotMatch": "Passwords do not match",
+    "fullNameRequired": "Please enter your full name"
+  },
+  "dashboard": {
+    "title": "Learning Dashboard",
+    "subtitle": "Track your learning progress and achievements",
+    "welcome": "Welcome back!",
+    "overview": "Overview",
+    "myCourses": "My Courses",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "newCourse": "New Course",
+    "continueLearning": "Continue Learning",
+    "viewCertificate": "View Certificate",
+    "progress": "Progress",
+    "remaining": "Remaining",
+    "studyTime": "Study Time",
+    "totalTime": "Total Time",
+    "averageScore": "Average Score",
+    "learningStreak": "Learning Streak",
+    "currentStreak": "Current",
+    "longestStreak": "Longest",
+    "recentActivity": "Recent Activity",
+    "learningHistory": "Learning History",
+    "quickStats": "Quick Stats",
+    "totalCourses": "Total Courses",
+    "activeDays": "Active Days",
+    "activityPercentage": "Activity Percentage",
+    "lessThan": "Less than",
+    "moreThan": "More than",
+    "noActivity": "No activity",
+    "startStreak": "Start your learning streak!",
+    "maintainStreak": "Great! Keep it up!",
+    "impressiveStreak": "Impressive! You're building a great habit!",
+    "excellentStreak": "Excellent! You're a persistent learner!",
+    "legendaryStreak": "Legendary! You're a learning master!",
+    "studyGoal": "Study at least 1 lesson per day to maintain your streak!"
+  },
+  "courses": {
+    "title": "Courses",
+    "allCourses": "All Courses",
+    "myCourses": "My Courses",
+    "featured": "Featured",
+    "popular": "Popular",
+    "new": "New",
+    "free": "Free",
+    "paid": "Paid",
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced",
+    "enroll": "Enroll",
+    "enrolled": "Enrolled",
+    "continue": "Continue",
+    "complete": "Complete",
+    "viewDetails": "View Details",
+    "addToWishlist": "Add to Wishlist",
+    "removeFromWishlist": "Remove from Wishlist",
+    "searchPlaceholder": "Search for courses...",
+    "filterBy": "Filter by",
+    "sortBy": "Sort by",
+    "price": "Price",
+    "duration": "Duration",
+    "level": "Level",
+    "category": "Category",
+    "instructor": "Instructor",
+    "rating": "Rating",
+    "students": "Students",
+    "lessons": "Lessons",
+    "hours": "hours",
+    "minutes": "minutes",
+    "free": "Free",
+    "enrolledOn": "Enrolled on",
+    "completedOn": "Completed on",
+    "lastAccessed": "Last accessed",
+    "courseContent": "Course Content",
+    "overview": "Overview",
+    "curriculum": "Curriculum",
+    "instructor": "Instructor",
+    "reviews": "Reviews",
+    "requirements": "Requirements",
+    "description": "Description",
+    "whatYouWillLearn": "What you'll learn",
+    "courseIncludes": "This course includes",
+    "lifetimeAccess": "Lifetime access",
+    "certificate": "Certificate of completion",
+    "mobileAccess": "Access on mobile and TV",
+    "assignments": "Assignments",
+    "resources": "Resources"
+  },
+  "categories": {
+    "title": "Categories",
+    "all": "All Categories",
+    "programming": "Programming",
+    "design": "Design",
+    "business": "Business",
+    "marketing": "Marketing",
+    "photography": "Photography",
+    "music": "Music",
+    "languages": "Languages",
+    "science": "Science",
+    "math": "Mathematics",
+    "health": "Health & Fitness",
+    "lifestyle": "Lifestyle",
+    "technology": "Technology",
+    "dataScience": "Data Science",
+    "webDevelopment": "Web Development",
+    "mobileDevelopment": "Mobile Development",
+    "gameDevelopment": "Game Development",
+    "cybersecurity": "Cybersecurity",
+    "cloudComputing": "Cloud Computing",
+    "artificialIntelligence": "Artificial Intelligence",
+    "machineLearning": "Machine Learning"
+  },
+  "activity": {
+    "enrollment": "Course Enrollment",
+    "completion": "Course Completion",
+    "lessonCompleted": "Lesson Completed",
+    "quizTaken": "Quiz Taken",
+    "newActivity": "New Activity",
+    "enrolledInCourse": "You enrolled in a new course",
+    "completedCourse": "Congratulations! You completed a course",
+    "completedLesson": "You completed a lesson",
+    "tookQuiz": "You took a quiz",
+    "newActivityInAccount": "New activity in your account",
+    "justNow": "Just now",
+    "minutesAgo": "minutes ago",
+    "hoursAgo": "hours ago",
+    "daysAgo": "days ago",
+    "view": "View",
+    "noRecentActivity": "No recent activity",
+    "startLearning": "Start learning to see activities here"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "update": "Update",
+    "submit": "Submit",
+    "reset": "Reset",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "finish": "Finish",
+    "continue": "Continue",
+    "retry": "Try again",
+    "refresh": "Refresh",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "viewAll": "View all",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "noData": "No data available",
+    "noResults": "No results found",
+    "tryAgain": "Try again",
+    "somethingWentWrong": "Something went wrong",
+    "pleaseTryAgain": "Please try again",
+    "required": "Required",
+    "optional": "Optional",
+    "yes": "Yes",
+    "no": "No",
+    "on": "On",
+    "off": "Off",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "active": "Active",
+    "inactive": "Inactive",
+    "public": "Public",
+    "private": "Private",
+    "draft": "Draft",
+    "published": "Published",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisWeek": "This week",
+    "thisMonth": "This month",
+    "thisYear": "This year",
+    "lastWeek": "Last week",
+    "lastMonth": "Last month",
+    "lastYear": "Last year",
+    "by": "by"
+  },
+  "time": {
+    "second": "second",
+    "seconds": "seconds",
+    "minute": "minute",
+    "minutes": "minutes",
+    "hour": "hour",
+    "hours": "hours",
+    "day": "day",
+    "days": "days",
+    "week": "week",
+    "weeks": "weeks",
+    "month": "month",
+    "months": "months",
+    "year": "year",
+    "years": "years",
+    "ago": "ago",
+    "fromNow": "from now",
+    "now": "now",
+    "never": "never"
+  },
+  "validation": {
+    "required": "This field is required",
+    "email": "Please enter a valid email address",
+    "minLength": "Must be at least {{count}} characters",
+    "maxLength": "Must be no more than {{count}} characters",
+    "min": "Must be at least {{count}}",
+    "max": "Must be no more than {{count}}",
+    "pattern": "Invalid format",
+    "unique": "This value already exists",
+    "match": "Values do not match",
+    "url": "Please enter a valid URL",
+    "phone": "Please enter a valid phone number",
+    "date": "Please enter a valid date",
+    "time": "Please enter a valid time",
+    "number": "Please enter a valid number",
+    "integer": "Please enter a whole number",
+    "decimal": "Please enter a decimal number",
+    "positive": "Must be a positive number",
+    "negative": "Must be a negative number",
+    "zero": "Cannot be zero",
+    "fileSize": "File size must be less than {{count}}MB",
+    "fileType": "Invalid file type",
+    "imageSize": "Image dimensions must be at least {{width}}x{{height}}px"
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "courses": "Courses",
+    "categories": "Categories",
+    "orders": "Orders",
+    "revenue": "Revenue",
+    "products": "Products",
+    "system": "System",
+    "settings": "Settings",
+    "analytics": "Analytics",
+    "reports": "Reports",
+    "logs": "Logs",
+    "backups": "Backups",
+    "maintenance": "Maintenance",
+    "totalUsers": "Total Users",
+    "totalCourses": "Total Courses",
+    "totalRevenue": "Total Revenue",
+    "totalOrders": "Total Orders",
+    "activeUsers": "Active Users",
+    "newUsers": "New Users",
+    "courseCompletions": "Course Completions",
+    "averageRating": "Average Rating",
+    "topCourses": "Top Courses",
+    "recentActivity": "Recent Activity",
+    "systemStatus": "System Status",
+    "databaseStatus": "Database Status",
+    "serverStatus": "Server Status",
+    "cacheStatus": "Cache Status",
+    "online": "Online",
+    "offline": "Offline",
+    "maintenance": "Maintenance",
+    "error": "Error"
+  },
+  "topics": {
+    "javascript": "JavaScript",
+    "react": "React",
+    "nodejs": "Node.js",
+    "python": "Python",
+    "sql": "SQL",
+    "docker": "Docker",
+    "uiux": "UI/UX",
+    "photoshop": "Photoshop",
+    "illustrator": "Illustrator",
+    "figma": "Figma",
+    "typography": "Typography",
+    "aws": "AWS",
+    "kubernetes": "Kubernetes",
+    "linux": "Linux",
+    "networking": "Networking",
+    "cybersecurity": "Cybersecurity",
+    "management": "Management",
+    "marketing": "Marketing",
+    "finance": "Finance",
+    "entrepreneurship": "Entrepreneurship",
+    "leadership": "Leadership",
+    "digitalMarketing": "Digital Marketing",
+    "seo": "SEO",
+    "contentMarketing": "Content Marketing",
+    "socialMedia": "Social Media",
+    "analytics": "Analytics",
+    "productivity": "Productivity",
+    "career": "Career",
+    "communication": "Communication",
+    "timeManagement": "Time Management"
+  },
+  "footer": {
+    "description": "Empowering learners worldwide with high-quality online courses. Join thousands of students advancing their careers through our comprehensive learning platform.",
+    "learning": {
+      "title": "Learning",
+      "allCourses": "All Courses",
+      "development": "Development",
+      "design": "Design",
+      "business": "Business",
+      "marketing": "Marketing",
+      "featured": "Featured Courses"
+    },
+    "support": {
+      "title": "Support",
+      "helpCenter": "Help Center",
+      "contactUs": "Contact Us",
+      "faq": "FAQ",
+      "community": "Community",
+      "teachOnPlatform": "Teach on Platform"
+    },
+    "company": {
+      "title": "Company",
+      "about": "About Us",
+      "careers": "Careers",
+      "blog": "Blog",
+      "press": "Press",
+      "partners": "Partners"
+    },
+    "contact": {
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address"
+    },
+    "security": {
+      "secure": "Secure Payment"
+    },
+    "quality": {
+      "certified": "Certified Quality"
+    },
+    "stats": {
+      "students": "Students",
+      "courses": "Courses",
+      "rating": "Rating",
+      "instructors": "Instructors"
+    },
+    "copyright": {
+      "allRightsReserved": "All rights reserved."
+    },
+    "legal": {
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "cookies": "Cookie Policy",
+      "sitemap": "Sitemap"
+    }
+  },
+  "sitemap": {
+    "title": "Site Map",
+    "description": "Navigate through all sections of our learning platform. Find courses, resources, and everything you need for your educational journey.",
+    "learning": {
+      "title": "Learning",
+      "description": "Explore our comprehensive course catalog",
+      "allCourses": "All Courses",
+      "featured": "Featured Courses",
+      "newCourses": "New Courses",
+      "popular": "Popular Courses",
+      "freeCourses": "Free Courses",
+      "categories": "Categories"
+    },
+    "categories": {
+      "title": "Categories",
+      "description": "Browse courses by subject area",
+      "development": "Development",
+      "design": "Design",
+      "business": "Business",
+      "marketing": "Marketing",
+      "itSoftware": "IT & Software",
+      "personalDev": "Personal Development"
+    },
+    "student": {
+      "title": "Student",
+      "description": "Your learning dashboard and progress",
+      "dashboard": "Dashboard",
+      "myCourses": "My Courses",
+      "progress": "Progress",
+      "certificates": "Certificates",
+      "wishlist": "Wishlist",
+      "profile": "Profile"
+    },
+    "instructor": {
+      "title": "Instructor",
+      "description": "Teach and share your knowledge",
+      "teachOnPlatform": "Teach on Platform",
+      "createCourse": "Create Course",
+      "myCourses": "My Courses",
+      "analytics": "Analytics",
+      "earnings": "Earnings",
+      "community": "Community"
+    },
+    "support": {
+      "title": "Support",
+      "description": "Get help and assistance",
+      "helpCenter": "Help Center",
+      "contactUs": "Contact Us",
+      "faq": "FAQ",
+      "community": "Community",
+      "status": "System Status",
+      "feedback": "Feedback"
+    },
+    "company": {
+      "title": "Company",
+      "description": "Learn about our organization",
+      "about": "About Us",
+      "careers": "Careers",
+      "blog": "Blog",
+      "press": "Press",
+      "partners": "Partners",
+      "investors": "Investors"
+    },
+    "legal": {
+      "title": "Legal",
+      "description": "Legal information and policies",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "cookies": "Cookie Policy",
+      "accessibility": "Accessibility",
+      "security": "Security",
+      "compliance": "Compliance"
+    },
+    "resources": {
+      "title": "Resources",
+      "description": "Additional learning resources",
+      "guides": "Learning Guides",
+      "tutorials": "Tutorials",
+      "webinars": "Webinars",
+      "events": "Events",
+      "api": "API Documentation",
+      "developer": "Developer Resources"
+    },
+    "stats": {
+      "title": "Platform Statistics",
+      "courses": "Courses",
+      "students": "Students",
+      "instructors": "Instructors",
+      "categories": "Categories"
+    },
+    "search": {
+      "title": "Can't find what you're looking for?",
+      "description": "Browse our complete course catalog and discover new learning opportunities.",
+      "browseCourses": "Browse All Courses"
+    }
+  },
+  "about": {
+    "hero": {
+      "title": "About Our Learning Platform",
+      "description": "We're revolutionizing education through innovative technology and personalized learning experiences.",
+      "watchVideo": "Watch Our Story",
+      "learnMore": "Learn More"
+    },
+    "stats": {
+      "students": "Active Students",
+      "courses": "Courses Available",
+      "countries": "Countries Served",
+      "satisfaction": "Student Satisfaction"
+    },
+    "mission": {
+      "title": "Our Mission",
+      "description": "To democratize education and make high-quality learning accessible to everyone, everywhere.",
+      "point1": {
+        "title": "Accessible Learning",
+        "description": "Breaking down barriers to education through technology"
+      },
+      "point2": {
+        "title": "Personalized Experience",
+        "description": "Tailored learning paths for every individual"
+      },
+      "point3": {
+        "title": "Global Community",
+        "description": "Connecting learners worldwide"
+      },
+      "impact": {
+        "title": "Our Impact",
+        "description": "Transforming lives through education",
+        "completion": "Course Completion Rate",
+        "rating": "Student Rating"
+      }
+    },
+    "values": {
+      "title": "Our Values",
+      "description": "The principles that guide everything we do",
+      "innovation": {
+        "title": "Innovation",
+        "description": "Continuously pushing the boundaries of educational technology"
+      },
+      "community": {
+        "title": "Community",
+        "description": "Building connections and fostering collaboration"
+      },
+      "excellence": {
+        "title": "Excellence",
+        "description": "Delivering the highest quality learning experiences"
+      },
+      "passion": {
+        "title": "Passion",
+        "description": "Driven by our love for education and learning"
+      }
+    },
+    "timeline": {
+      "title": "Our Journey",
+      "description": "Key milestones in our company's growth",
+      "founded": {
+        "title": "Company Founded",
+        "description": "Started with a vision to transform education"
+      },
+      "firstStudents": {
+        "title": "First 1,000 Students",
+        "description": "Reached our first major milestone"
+      },
+      "international": {
+        "title": "Global Expansion",
+        "description": "Expanded to serve students worldwide"
+      },
+      "awards": {
+        "title": "Industry Recognition",
+        "description": "Received multiple awards for innovation"
+      },
+      "ai": {
+        "title": "AI Integration",
+        "description": "Launched AI-powered personalized learning"
+      }
+    },
+    "team": {
+      "title": "Leadership Team",
+      "description": "Meet the people behind our success",
+      "ceo": {
+        "name": "Sarah Johnson",
+        "role": "Chief Executive Officer",
+        "description": "Education technology visionary with 15+ years experience"
+      },
+      "cto": {
+        "name": "Michael Chen",
+        "role": "Chief Technology Officer",
+        "description": "AI and machine learning expert driving innovation"
+      },
+      "cmo": {
+        "name": "Emily Rodriguez",
+        "role": "Chief Marketing Officer",
+        "description": "Brand strategist focused on global growth"
+      }
+    },
+    "cta": {
+      "title": "Join Our Mission",
+      "description": "Be part of the future of education",
+      "joinUs": "Join Our Team",
+      "contactUs": "Contact Us"
+    }
+  },
+  "partners": {
+    "hero": {
+      "title": "Partnership Opportunities",
+      "description": "Join our network of partners and help shape the future of education",
+      "becomePartner": "Become a Partner",
+      "learnMore": "Learn More"
+    },
+    "types": {
+      "title": "Partnership Types",
+      "description": "Different ways to partner with us",
+      "educational": {
+        "title": "Educational Partners",
+        "description": "Universities, schools, and educational institutions",
+        "benefit1": "Access to our platform",
+        "benefit2": "Custom learning solutions",
+        "benefit3": "Joint research opportunities"
+      },
+      "technology": {
+        "title": "Technology Partners",
+        "description": "Tech companies and solution providers",
+        "benefit1": "API integration support",
+        "benefit2": "Technical collaboration",
+        "benefit3": "Co-marketing opportunities"
+      },
+      "global": {
+        "title": "Global Partners",
+        "description": "International organizations and distributors",
+        "benefit1": "Regional market access",
+        "benefit2": "Localization support",
+        "benefit3": "Cultural adaptation"
+      },
+      "corporate": {
+        "title": "Corporate Partners",
+        "description": "Enterprise training and development",
+        "benefit1": "Custom enterprise solutions",
+        "benefit2": "Dedicated support team",
+        "benefit3": "Volume discounts"
+      }
+    },
+    "current": {
+      "title": "Current Partners",
+      "description": "Trusted by leading organizations worldwide",
+      "visitWebsite": "Visit Website",
+      "microsoft": {
+        "name": "Microsoft",
+        "type": "Technology Partner",
+        "description": "Cloud infrastructure and AI integration"
+      },
+      "google": {
+        "name": "Google",
+        "type": "Technology Partner",
+        "description": "Machine learning and analytics solutions"
+      },
+      "amazon": {
+        "name": "Amazon",
+        "type": "Cloud Partner",
+        "description": "AWS infrastructure and services"
+      },
+      "ibm": {
+        "name": "IBM",
+        "type": "AI Partner",
+        "description": "Watson AI and cognitive services"
+      },
+      "oracle": {
+        "name": "Oracle",
+        "type": "Database Partner",
+        "description": "Enterprise database solutions"
+      },
+      "salesforce": {
+        "name": "Salesforce",
+        "type": "CRM Partner",
+        "description": "Customer relationship management"
+      }
+    },
+    "benefits": {
+      "title": "Partnership Benefits",
+      "description": "What you get when you partner with us",
+      "growth": {
+        "title": "Business Growth",
+        "description": "Expand your reach and grow your business"
+      },
+      "network": {
+        "title": "Global Network",
+        "description": "Access to our worldwide partner network"
+      },
+      "innovation": {
+        "title": "Innovation",
+        "description": "Collaborate on cutting-edge solutions"
+      },
+      "support": {
+        "title": "Dedicated Support",
+        "description": "Get the support you need to succeed"
+      }
+    },
+    "success": {
+      "title": "Success Stories",
+      "description": "How our partners are making an impact",
+      "story1": {
+        "title": "University Partnership",
+        "partner": "Stanford University",
+        "result": "40% increase in student engagement",
+        "description": "How we helped Stanford enhance their online learning experience"
+      },
+      "story2": {
+        "title": "Corporate Training",
+        "partner": "Fortune 500 Company",
+        "result": "60% reduction in training costs",
+        "description": "Transforming corporate training with our platform"
+      },
+      "story3": {
+        "title": "Global Expansion",
+        "partner": "International NGO",
+        "result": "Reached 50+ countries",
+        "description": "Scaling education access worldwide"
+      }
+    },
+    "process": {
+      "title": "Partnership Process",
+      "description": "How to become our partner",
+      "step1": {
+        "title": "Initial Contact",
+        "description": "Reach out to discuss partnership opportunities"
+      },
+      "step2": {
+        "title": "Evaluation",
+        "description": "We evaluate your organization and fit"
+      },
+      "step3": {
+        "title": "Agreement",
+        "description": "Sign partnership agreement and terms"
+      },
+      "step4": {
+        "title": "Launch",
+        "description": "Begin collaboration and joint initiatives"
+      }
+    },
+    "cta": {
+      "title": "Ready to Partner?",
+      "description": "Let's work together to transform education",
+      "becomePartner": "Become a Partner",
+      "downloadKit": "Download Partner Kit"
+    },
+    "contact": {
+      "email": {
+        "title": "Email"
+      },
+      "phone": {
+        "title": "Phone"
+      },
+      "address": {
+        "title": "Address"
+      }
+    }
+  },
+  "careers": {
+    "hero": {
+      "title": "Join Our Team",
+      "description": "Help us build the future of education. We're looking for passionate individuals who share our vision.",
+      "viewPositions": "View Open Positions",
+      "learnMore": "Learn More"
+    },
+    "stats": {
+      "employees": "Team Members",
+      "countries": "Countries",
+      "rating": "Glassdoor Rating",
+      "retention": "Retention Rate"
+    },
+    "benefits": {
+      "health": {
+        "title": "Health & Wellness",
+        "description": "Comprehensive health insurance and wellness programs"
+      },
+      "remote": {
+        "title": "Remote Work",
+        "description": "Flexible work arrangements and remote options"
+      },
+      "learning": {
+        "title": "Learning Budget",
+        "description": "Annual budget for professional development"
+      },
+      "equity": {
+        "title": "Equity Participation",
+        "description": "Stock options and equity sharing program"
+      },
+      "flexible": {
+        "title": "Flexible Hours",
+        "description": "Work-life balance with flexible scheduling"
+      },
+      "recognition": {
+        "title": "Recognition",
+        "description": "Regular recognition and career advancement"
+      }
+    },
+    "culture": {
+      "title": "Our Culture",
+      "description": "The values that define our workplace",
+      "collaboration": {
+        "title": "Collaboration",
+        "description": "Working together to achieve common goals"
+      },
+      "innovation": {
+        "title": "Innovation",
+        "description": "Encouraging creative thinking and new ideas"
+      },
+      "diversity": {
+        "title": "Diversity",
+        "description": "Inclusive environment celebrating differences"
+      },
+      "integrity": {
+        "title": "Integrity",
+        "description": "Honest, transparent, and ethical practices"
+      }
+    },
+    "positions": {
+      "title": "Open Positions",
+      "description": "Current job openings at our company",
+      "apply": "Apply Now",
+      "requirements": "Requirements",
+      "frontend": {
+        "title": "Senior Frontend Developer",
+        "department": "Engineering",
+        "location": "Remote",
+        "type": "Full-time",
+        "description": "Build beautiful, responsive user interfaces for our learning platform",
+        "req1": "5+ years React/TypeScript experience",
+        "req2": "Strong CSS and design system knowledge",
+        "req3": "Experience with modern build tools",
+        "req4": "Passion for user experience"
+      },
+      "backend": {
+        "title": "Backend Engineer",
+        "department": "Engineering",
+        "location": "San Francisco",
+        "type": "Full-time",
+        "description": "Develop scalable backend services and APIs",
+        "req1": "5+ years Node.js/Python experience",
+        "req2": "Database design and optimization",
+        "req3": "Cloud platform experience (AWS/GCP)",
+        "req4": "API design and documentation"
+      },
+      "designer": {
+        "title": "UX/UI Designer",
+        "department": "Design",
+        "location": "Remote",
+        "type": "Full-time",
+        "description": "Create intuitive and engaging user experiences",
+        "req1": "3+ years UX/UI design experience",
+        "req2": "Proficiency in Figma and design tools",
+        "req3": "User research and testing experience",
+        "req4": "Portfolio demonstrating design skills"
+      },
+      "marketing": {
+        "title": "Growth Marketing Manager",
+        "department": "Marketing",
+        "location": "New York",
+        "type": "Full-time",
+        "description": "Drive user acquisition and growth strategies",
+        "req1": "3+ years growth marketing experience",
+        "req2": "Digital marketing and analytics",
+        "req3": "A/B testing and optimization",
+        "req4": "Content marketing and SEO"
+      }
+    },
+    "testimonials": {
+      "title": "What Our Team Says",
+      "description": "Hear from our current employees",
+      "testimonial1": {
+        "content": "The best place I've ever worked. The team is amazing and the mission is inspiring.",
+        "author": "Alex Thompson",
+        "role": "Senior Developer"
+      },
+      "testimonial2": {
+        "content": "Flexible work environment with great opportunities for growth and learning.",
+        "author": "Maria Garcia",
+        "role": "Product Manager"
+      },
+      "testimonial3": {
+        "content": "Making a real impact on education while working with cutting-edge technology.",
+        "author": "David Kim",
+        "role": "Data Scientist"
+      }
+    },
+    "cta": {
+      "title": "Ready to Join Us?",
+      "description": "Start your journey with our innovative team",
+      "viewPositions": "View All Positions",
+      "contactUs": "Contact Us"
+    }
+  },
+  "blog": {
+    "hero": {
+      "title": "Our Blog",
+      "description": "Insights, tips, and stories from the world of online education",
+      "searchPlaceholder": "Search articles..."
+    },
+    "featured": {
+      "title": "The Future of Online Learning: AI-Powered Personalization",
+      "excerpt": "Discover how artificial intelligence is revolutionizing education and creating personalized learning experiences for students worldwide.",
+      "author": "Sarah Johnson",
+      "date": "March 15, 2024",
+      "readTime": "8 min read",
+      "category": "Technology",
+      "tag1": "AI",
+      "tag2": "Education",
+      "tag3": "Innovation"
+    },
+    "sidebar": {
+      "categories": "Categories",
+      "trendingTags": "Trending Tags",
+      "newsletter": {
+        "title": "Stay Updated",
+        "description": "Get the latest articles delivered to your inbox",
+        "emailPlaceholder": "Enter your email",
+        "subscribe": "Subscribe"
+      }
+    },
+    "categories": {
+      "technology": "Technology",
+      "design": "Design",
+      "education": "Education",
+      "business": "Business",
+      "innovation": "Innovation",
+      "lifestyle": "Lifestyle"
+    },
+    "posts": {
+      "title": "Latest Articles",
+      "sortBy": "Sort by",
+      "sortOptions": {
+        "latest": "Latest",
+        "popular": "Popular",
+        "trending": "Trending"
+      },
+      "post1": {
+        "title": "Building Scalable React Applications",
+        "excerpt": "Learn best practices for creating maintainable and performant React applications at scale.",
+        "author": "Michael Chen",
+        "date": "March 12, 2024",
+        "readTime": "6 min read",
+        "category": "Technology",
+        "tag1": "React",
+        "tag2": "JavaScript"
+      },
+      "post2": {
+        "title": "Design Systems in Education",
+        "excerpt": "How consistent design systems improve learning experiences and user engagement.",
+        "author": "Emily Rodriguez",
+        "date": "March 10, 2024",
+        "readTime": "5 min read",
+        "category": "Design",
+        "tag1": "Design",
+        "tag2": "UX"
+      },
+      "post3": {
+        "title": "Remote Learning Best Practices",
+        "excerpt": "Tips and strategies for effective online teaching and learning experiences.",
+        "author": "Dr. Lisa Wang",
+        "date": "March 8, 2024",
+        "readTime": "7 min read",
+        "category": "Education",
+        "tag1": "Teaching",
+        "tag2": "Online"
+      },
+      "post4": {
+        "title": "EdTech Market Trends 2024",
+        "excerpt": "Analysis of emerging trends and opportunities in the education technology sector.",
+        "author": "James Wilson",
+        "date": "March 5, 2024",
+        "readTime": "9 min read",
+        "category": "Business",
+        "tag1": "Market",
+        "tag2": "Trends"
+      },
+      "post5": {
+        "title": "Innovation in Learning Platforms",
+        "excerpt": "Exploring cutting-edge technologies that are transforming how we learn online.",
+        "author": "Alex Thompson",
+        "date": "March 3, 2024",
+        "readTime": "6 min read",
+        "category": "Innovation",
+        "tag1": "Innovation",
+        "tag2": "Technology"
+      },
+      "post6": {
+        "title": "Work-Life Balance for Educators",
+        "excerpt": "Maintaining healthy boundaries while delivering quality education online.",
+        "author": "Rachel Green",
+        "date": "March 1, 2024",
+        "readTime": "4 min read",
+        "category": "Lifestyle",
+        "tag1": "Balance",
+        "tag2": "Wellness"
+      }
+    },
+    "trendingTags": {
+      "ai": "AI",
+      "react": "React",
+      "design": "Design",
+      "career": "Career",
+      "learning": "Learning",
+      "innovation": "Innovation",
+      "remote": "Remote",
+      "startup": "Startup"
+    },
+    "readMore": "Read More",
+    "loadMore": "Load More Articles"
+  },
+  "press": {
+    "hero": {
+      "title": "Press & Media",
+      "description": "Latest news, press releases, and media resources about our platform",
+      "downloadKit": "Download Media Kit",
+      "contactUs": "Contact Press Team"
+    },
+    "stats": {
+      "students": "Students Served",
+      "courses": "Courses Available",
+      "countries": "Countries",
+      "satisfaction": "Satisfaction Rate"
+    },
+    "releases": {
+      "title": "Press Releases",
+      "description": "Latest announcements and company news",
+      "readMore": "Read More",
+      "release1": {
+        "title": "Platform Reaches 50,000 Student Milestone",
+        "date": "March 15, 2024",
+        "summary": "Our learning platform celebrates a major milestone with 50,000 active students worldwide.",
+        "category": "Milestone"
+      },
+      "release2": {
+        "title": "AI-Powered Learning Features Launch",
+        "date": "March 10, 2024",
+        "summary": "New artificial intelligence features provide personalized learning experiences for students.",
+        "category": "Product"
+      },
+      "release3": {
+        "title": "Series B Funding Round Completed",
+        "date": "March 5, 2024",
+        "summary": "Successfully raised $15M in Series B funding to accelerate global expansion.",
+        "category": "Funding"
+      },
+      "release4": {
+        "title": "Partnership with Leading Universities",
+        "date": "February 28, 2024",
+        "summary": "Strategic partnerships with top universities to expand course offerings.",
+        "category": "Partnership"
+      }
+    },
+    "mediaKit": {
+      "title": "Media Kit",
+      "description": "Download our brand assets and press materials",
+      "download": "Download",
+      "logos": {
+        "title": "Company Logos",
+        "description": "High-resolution logos in various formats"
+      },
+      "photos": {
+        "title": "Team Photos",
+        "description": "Professional photos of our leadership team"
+      },
+      "videos": {
+        "title": "Product Videos",
+        "description": "Demo videos showcasing platform features"
+      },
+      "factSheet": {
+        "title": "Company Fact Sheet",
+        "description": "Key statistics and company information"
+      }
+    },
+    "coverage": {
+      "title": "Media Coverage",
+      "description": "Recent articles and mentions in the press",
+      "readArticle": "Read Article",
+      "article1": {
+        "title": "Revolutionizing Online Education with AI",
+        "source": "TechCrunch",
+        "date": "March 12, 2024",
+        "excerpt": "How artificial intelligence is transforming the way students learn online..."
+      },
+      "article2": {
+        "title": "The Future of Personalized Learning",
+        "source": "EdTech Magazine",
+        "date": "March 8, 2024",
+        "excerpt": "Exploring the impact of personalized learning experiences on student outcomes..."
+      },
+      "article3": {
+        "title": "Startup Spotlight: Education Innovation",
+        "source": "Forbes",
+        "date": "March 5, 2024",
+        "excerpt": "Meet the team behind the platform that's changing how we think about online education..."
+      }
+    },
+    "awards": {
+      "title": "Awards & Recognition",
+      "description": "Industry recognition for our innovation and impact",
+      "award1": {
+        "title": "Best EdTech Platform 2024",
+        "organization": "Education Innovation Awards",
+        "year": "2024",
+        "description": "Recognized for outstanding innovation in educational technology"
+      },
+      "award2": {
+        "title": "Top 50 Startups to Watch",
+        "organization": "TechCrunch",
+        "year": "2024",
+        "description": "Featured in annual list of promising technology startups"
+      },
+      "award3": {
+        "title": "Excellence in User Experience",
+        "organization": "UX Design Awards",
+        "year": "2023",
+        "description": "Awarded for exceptional user experience design"
+      }
+    },
+    "contact": {
+      "title": "Press Contact",
+      "description": "Get in touch with our press team for media inquiries",
+      "email": {
+        "title": "Email"
+      },
+      "phone": {
+        "title": "Phone"
+      },
+      "address": {
+        "title": "Address"
+      }
+    }
+  },
+  "investors": {
+    "hero": {
+      "title": "Investor Relations",
+      "description": "Information for current and potential investors",
+      "downloadReports": "Download Reports",
+      "contactUs": "Contact Us"
+    },
+    "metrics": {
+      "title": "Key Metrics",
+      "description": "Our latest performance indicators",
+      "students": "Active Students",
+      "revenue": "Annual Revenue",
+      "countries": "Countries Served",
+      "satisfaction": "Student Satisfaction"
+    },
+    "financial": {
+      "title": "Financial Highlights",
+      "description": "Key financial performance indicators",
+      "revenue": {
+        "title": "Annual Revenue",
+        "description": "Strong revenue growth year over year"
+      },
+      "growth": {
+        "title": "Growth Rate",
+        "description": "Consistent double-digit growth"
+      },
+      "margin": {
+        "title": "Gross Margin",
+        "description": "Healthy profit margins"
+      },
+      "retention": {
+        "title": "Customer Retention",
+        "description": "High customer satisfaction and retention"
+      }
+    },
+    "documents": {
+      "title": "Investor Documents",
+      "description": "Download our latest financial reports and presentations",
+      "download": "Download",
+      "quarterly": {
+        "title": "Q4 2023 Earnings Report",
+        "description": "Fourth quarter financial results and business updates",
+        "date": "March 15, 2024"
+      },
+      "annual": {
+        "title": "2023 Annual Report",
+        "description": "Comprehensive annual financial and operational review",
+        "date": "February 28, 2024"
+      },
+      "presentation": {
+        "title": "Investor Presentation",
+        "description": "Company overview and growth strategy presentation",
+        "date": "March 1, 2024"
+      },
+      "financials": {
+        "title": "Financial Statements",
+        "description": "Detailed financial statements and metrics",
+        "date": "March 10, 2024"
+      }
+    },
+    "leadership": {
+      "title": "Leadership Team",
+      "description": "Meet our executive leadership",
+      "ceo": {
+        "name": "Sarah Johnson",
+        "role": "Chief Executive Officer",
+        "experience": "15+ years in EdTech",
+        "description": "Visionary leader with proven track record in education technology"
+      },
+      "cfo": {
+        "name": "Michael Chen",
+        "role": "Chief Financial Officer",
+        "experience": "12+ years in finance",
+        "description": "Financial strategy expert with experience in high-growth companies"
+      },
+      "cto": {
+        "name": "Alex Thompson",
+        "role": "Chief Technology Officer",
+        "experience": "10+ years in technology",
+        "description": "Technology innovator driving platform development and AI integration"
+      }
+    },
+    "milestones": {
+      "title": "Company Milestones",
+      "description": "Key achievements in our company's history",
+      "founded": {
+        "title": "Company Founded",
+        "description": "Started with a vision to transform education"
+      },
+      "seed": {
+        "title": "Seed Funding",
+        "description": "Raised $2M in seed funding from angel investors"
+      },
+      "seriesA": {
+        "title": "Series A Funding",
+        "description": "Raised $8M in Series A to accelerate growth"
+      },
+      "expansion": {
+        "title": "Global Expansion",
+        "description": "Expanded to serve students in 50+ countries"
+      },
+      "seriesB": {
+        "title": "Series B Funding",
+        "description": "Raised $15M in Series B for international expansion"
+      }
+    },
+    "highlights": {
+      "title": "Investment Highlights",
+      "description": "Why invest in our company",
+      "growth": {
+        "title": "Strong Growth",
+        "description": "Consistent revenue growth and market expansion"
+      },
+      "innovation": {
+        "title": "Innovation Leadership",
+        "description": "Cutting-edge technology and AI integration"
+      },
+      "market": {
+        "title": "Large Market",
+        "description": "Addressing the $350B global education market"
+      }
+    },
+    "cta": {
+      "title": "Investor Information",
+      "description": "Access our latest investor materials and reports",
+      "downloadReports": "Download Reports",
+      "contactUs": "Contact Us"
+    }
+  }
+}

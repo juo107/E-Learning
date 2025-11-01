@@ -1,0 +1,117 @@
+/* Tailwind v4 */
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+html.dark {
+  color-scheme: dark;
+  --bg-primary: #0f0f23;
+  --bg-secondary: #1a1a2e;
+  --text-primary: #f8fafc;
+  --text-secondary: #9ca3af;
+  --border-color: #374151;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+html {
+  scroll-behavior: smooth;
+  transition: color-scheme 0.3s ease;
+}
+
+body {
+  @apply bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Prevent accidental horizontal scroll */
+html, body { 
+  overflow-x: hidden; 
+}
+
+/* Enhanced dark mode styles */
+html.dark {
+  background-color: var(--bg-primary);
+}
+
+html.dark body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom scrollbar for dark mode */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* focus-visible ring (exclude text inputs) */
+:where(a, button, [role='button'], select, details, summary):focus-visible {
+  outline: 2px solid #6366f1; /* indigo-500 */
+  outline-offset: 2px;
+}
+
+input:focus-visible, textarea:focus-visible {
+  outline: none;
+}
+
+/* Utility to hide scrollbars (optional for carousels) */
+.scrollbar-none { 
+  -ms-overflow-style: none; 
+  scrollbar-width: none; 
+}
+
+.scrollbar-none::-webkit-scrollbar { 
+  display: none; 
+}
+
+/* subtle fade-in */
+@keyframes fade-in { 
+  from { opacity: 0 } 
+  to { opacity: 1 } 
+}
+
+.animate-fade-in { 
+  animation: fade-in .25s ease-in both; 
+}
+
+/* simple spinner */
+@keyframes spin { 
+  to { transform: rotate(360deg) } 
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  border: 3px solid rgba(0,0,0,0.1);
+  border-top-color: #6366f1; /* indigo */
+  animation: spin .9s linear infinite;
+}

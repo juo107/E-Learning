@@ -24,7 +24,7 @@ namespace Elearn.Infrastructure.Repository.Implementations
             // Apply soft delete filter if entity implements ISoftDeletable
             if (typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
             {
-                query = query.Where(e => !((ISoftDeletable)e).IsDeleted);
+                query = query.Where(e => !EF.Property<bool>(e, "IsDeleted"));
             }
             
             return await query.ToListAsync();
@@ -43,7 +43,7 @@ namespace Elearn.Infrastructure.Repository.Implementations
             // Apply soft delete filter if entity implements ISoftDeletable
             if (typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
             {
-                query = query.Where(e => !((ISoftDeletable)e).IsDeleted);
+                query = query.Where(e => !EF.Property<bool>(e, "IsDeleted"));
             }
             
             return await query.ToListAsync();
@@ -117,7 +117,7 @@ namespace Elearn.Infrastructure.Repository.Implementations
             // Apply soft delete filter if entity implements ISoftDeletable
             if (typeof(ISoftDeletable).IsAssignableFrom(typeof(T)))
             {
-                query = query.Where(e => !((ISoftDeletable)e).IsDeleted);
+                query = query.Where(e => !EF.Property<bool>(e, "IsDeleted"));
             }
             
             return await query.ToListAsync();
