@@ -3,6 +3,7 @@ import AdminLayout from './components/layout/AdminLayout';
 import Dashboard from './pages/Dashboard';
 import Courses from './pages/Courses';
 import Categories from './pages/Categories';
+import Promotions from './pages/Promotions';
 import Login from './pages/Login';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import ToastContainer from './components/ui/Toast';
@@ -41,6 +42,7 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="courses" element={<Courses />} />
           <Route path="categories" element={<Categories />} />
+          <Route path="promotions" element={<Promotions />} />
         </Route>
         
         {/* Catch all - redirect to login */}

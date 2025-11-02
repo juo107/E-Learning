@@ -1101,5 +1101,122 @@
       "downloadReports": "Tải báo cáo",
       "contactUs": "Liên hệ"
     }
+  },
+  "home": {
+    "hero": {
+      "title": "Học tập không giới hạn",
+      "subtitle": "Xây dựng kỹ năng cho hôm nay, ngày mai và tương lai. Học từ các chuyên gia trên khắp thế giới.",
+      "developedBy": "Phát triển bởi Juo",
+      "trendingNow": "Đang thịnh hành",
+      "masterSkills": "Làm chủ các kỹ năng hiện đại với khóa học từ chuyên gia",
+      "masterDescription": "Nâng cao kỹ năng trong lập trình, thiết kế, dữ liệu và nhiều hơn nữa. Nội dung mới hàng tuần.",
+      "exploreCourses": "Khám phá khóa học"
+    },
+    "trustedBy": {
+      "title": "Được tin cậy bởi các công ty thuộc mọi quy mô:"
+    },
+    "studentsAreViewing": {
+      "title": "Học viên đang xem",
+      "viewAll": "Xem tất cả"
+    },
+    "bestsellers": {
+      "title": "Khóa học bán chạy"
+    }
+  },
+  "flashDeal": {
+    "badge": "Ưu đãi có giới hạn",
+    "title": "Flash Sale - Chỉ trong thời gian giới hạn!",
+    "description": "Nhận các khóa học cao cấp với giá không thể cạnh tranh. Nhanh lên trước khi ưu đãi kết thúc!",
+    "endsIn": "Kết thúc sau:",
+    "hours": "Giờ",
+    "minutes": "Phút",
+    "seconds": "Giây",
+    "shopNow": "Mua ngay - Tiết kiệm {{discount}}%",
+    "off": "GIẢM"
+  },
+  "stats": {
+    "title": "Tham gia cùng hàng triệu người học",
+    "subtitle": "Khám phá lý do học viên trên khắp thế giới chọn chúng tôi cho hành trình học tập của họ",
+    "activeLearners": {
+      "label": "Người học tích cực",
+      "suffix": "toàn cầu"
+    },
+    "onlineCourses": {
+      "label": "Khóa học trực tuyến",
+      "suffix": "có sẵn"
+    },
+    "expertInstructors": {
+      "label": "Giảng viên chuyên gia",
+      "suffix": "đang giảng dạy"
+    },
+    "countries": {
+      "label": "Quốc gia",
+      "suffix": "đã tiếp cận"
+    },
+    "successRate": {
+      "label": "Tỷ lệ thành công",
+      "suffix": "tìm việc"
+    }
+  },
+  "newsletter": {
+    "title": "Nhận ưu đãi học tập độc quyền",
+    "subtitle": "Đăng ký nhận bản tin của chúng tôi để nhận các ưu đãi đặc biệt, cập nhật khóa học và mẹo học tập được gửi đến hộp thư của bạn.",
+    "emailPlaceholder": "Nhập địa chỉ email của bạn",
+    "subscribe": "Đăng ký",
+    "subscribing": "Đang đăng ký...",
+    "success": "Cảm ơn bạn đã đăng ký! Kiểm tra email của bạn để nhận ưu đãi đặc biệt.",
+    "privacy": "🔒 Chúng tôi tôn trọng quyền riêng tư của bạn. Hủy đăng ký bất cứ lúc nào."
+  },
+  "testimonials": {
+    "title": "Học viên của chúng tôi nói gì",
+    "subtitle": "Phản hồi thực tế từ những người học đã thay đổi sự nghiệp của họ",
+    "testimonial1": {
+      "name": "Nguyễn Văn A",
+      "role": "Software Developer",
+      "comment": "Khóa học này đã giúp tôi nâng cao kỹ năng lập trình một cách đáng kể. Giảng viên rất tận tâm và nội dung rất thực tế.",
+      "course": "Full-Stack Web Development"
+    },
+    "testimonial2": {
+      "name": "Trần Thị B",
+      "role": "UI/UX Designer",
+      "comment": "Tuyệt vời! Tôi đã học được nhiều kiến thức mới về design thinking và có thể áp dụng ngay vào công việc.",
+      "course": "UI/UX Design Masterclass"
+    },
+    "testimonial3": {
+      "name": "Lê Minh C",
+      "role": "Data Analyst",
+      "comment": "Khóa học về Data Science rất chi tiết và dễ hiểu. Tôi đã có thể tự phân tích dữ liệu một cách chuyên nghiệp.",
+      "course": "Data Science Fundamentals"
+    },
+    "testimonial4": {
+      "name": "Phạm Thị D",
+      "role": "Marketing Manager",
+      "comment": "Nội dung khóa học rất cập nhật và phù hợp với xu hướng hiện tại. Tôi đã áp dụng thành công vào chiến dịch marketing của công ty.",
+      "course": "Digital Marketing Strategy"
+    }
+  },
+  "promoBanner": {
+    "startLearning": "Bắt đầu học",
+    "featuredCourse": "Khóa học nổi bật"
+  },
+  "cart": {
+    "title": "Giỏ hàng",
+    "empty": "Giỏ hàng trống",
+    "emptyCart": "Giỏ hàng của bạn trống",
+    "emptyDescription": "Bạn chưa thêm khóa học nào vào giỏ hàng. Hãy khám phá các khóa học tuyệt vời của chúng tôi!",
+    "itemsCount": "{{count}} khóa học trong giỏ hàng",
+    "browseCourses": "Khám phá khóa học",
+    "remove": "Xóa",
+    "total": "Tổng cộng",
+    "checkout": "Thanh toán",
+    "checkoutMessage": "Tính năng thanh toán đang được phát triển",
+    "orderSummary": "Tóm tắt đơn hàng",
+    "subtotal": "Tạm tính",
+    "tax": "Thuế (10%)",
+    "clearAll": "Xóa tất cả",
+    "confirmClear": "Bạn có chắc chắn muốn xóa tất cả khóa học khỏi giỏ hàng?",
+    "continueShopping": "Tiếp tục mua sắm",
+    "decreaseQuantity": "Giảm số lượng",
+    "increaseQuantity": "Tăng số lượng"
   }
 }

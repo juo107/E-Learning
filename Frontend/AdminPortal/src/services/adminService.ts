@@ -207,6 +207,125 @@ export const categoryService = {
   },
 };
 
+// Promotion DTOs
+export interface PromotionDto {
+  id: string;
+  name: string;
+  description?: string;
+  type: number; // 0 = Percentage
+  value: number;
+  scope: number; // 0 = All, 1 = Category, 2 = Course, 3 = SpecificCourses
+  categoryId?: string;
+  categoryName?: string;
+  startDate: string;
+  endDate: string;
+  maxUsageCount?: number;
+  usageCount: number;
+  code?: string;
+  requireCode: boolean;
+  isActive: boolean;
+  minimumOrderAmount?: number;
+  maximumDiscountAmount?: number;
+  createdAt: string;
+  updatedAt?: string;
+  courseIds?: string[];
+}
+
+export interface CreatePromotionDto {
+  name: string;
+  description?: string;
+  type: number;
+  value: number;
+  scope: number;
+  categoryId?: string;
+  startDate: string;
+  endDate: string;
+  maxUsageCount?: number;
+  code?: string;
+  requireCode?: boolean;
+  isActive?: boolean;
+  minimumOrderAmount?: number;
+  maximumDiscountAmount?: number;
+  courseIds?: string[];
+}
+
+export interface UpdatePromotionDto {
+  name?: string;
+  description?: string;
+  type?: number;
+  value?: number;
+  scope?: number;
+  categoryId?: string;
+  startDate?: string;
+  endDate?: string;
+  maxUsageCount?: number;
+  code?: string;
+  requireCode?: boolean;
+  isActive?: boolean;
+  minimumOrderAmount?: number;
+  maximumDiscountAmount?: number;
+  courseIds?: string[];
+}
+
+export const promotionService = {
+  getAll: async (params?: {
+    pageNumber?: number;
+    pageSize?: number;
+    keyword?: string;
+    sortBy?: string;
+    isDescending?: boolean;
+    includeDeleted?: boolean;
+  }) => {
+    const res = await adminApi.get('/AdminPromotion', { params });
+    return res.data;
+  },
+
+  getById: async (id: string) => {
+    const res = await adminApi.get(`/AdminPromotion/${id}`);
+    return res.data;
+  },
+
+  create: async (data: CreatePromotionDto) => {
+    const res = await adminApi.post('/AdminPromotion', data);
+    return res.data;
+  },
+
+  update: async (id: string, data: UpdatePromotionDto) => {
+    const res = await adminApi.put(`/AdminPromotion/${id}`, data);
+    return res.data;
+  },
+
+  delete: async (id: string) => {
+    const res = await adminApi.delete(`/AdminPromotion/${id}`);
+    return res.data;
+  },
+
+  restore: async (id: string) => {
+    const res = await adminApi.post(`/AdminPromotion/${id}/restore`);
+    return res.data;
+  },
+
+  activate: async (id: string) => {
+    const res = await adminApi.post(`/AdminPromotion/${id}/activate`);
+    return res.data;
+  },
+
+  deactivate: async (id: string) => {
+    const res = await adminApi.post(`/AdminPromotion/${id}/deactivate`);
+    return res.data;
+  },
+
+  getActive: async () => {
+    const res = await adminApi.get('/AdminPromotion/active');
+    return res.data;
+  },
+
+  getByCategory: async (categoryId: string) => {
+    const res = await adminApi.get(`/AdminPromotion/category/${categoryId}`);
+    return res.data;
+  },
+};
+
 // Dashboard stats (mock for now, can be replaced with real API)
 export const getDashboardStats = async (): Promise<DashboardStats> => {
   try {

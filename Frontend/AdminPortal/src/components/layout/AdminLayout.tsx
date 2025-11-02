@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   ChevronRight,
+  Tag,
 } from 'lucide-react';
 
 export default function AdminLayout() {
@@ -27,6 +28,7 @@ export default function AdminLayout() {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: BookOpen, label: 'Courses', path: '/courses' },
     { icon: FolderTree, label: 'Categories', path: '/categories' },
+    { icon: Tag, label: 'Promotions', path: '/promotions' },
     { icon: Users, label: 'Users', path: '/users' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];

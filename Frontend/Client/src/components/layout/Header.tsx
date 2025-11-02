@@ -3,6 +3,7 @@ import { ShoppingCart, Heart, Globe, User, LayoutDashboard, LogOut, GraduationCa
 import { Link, useNavigate } from 'react-router-dom';
 import GlobalSearch from '../search/GlobalSearch';
 import MegaCategories from './MegaCategories';
+import CartPopover from '../cart/CartPopover';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -107,9 +108,11 @@ export default function Header() {
           <button onClick={toggleLang} aria-label="Language" className="px-2 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 flex items-center gap-1">
             <Globe className="size-4" /> {lang}
           </button>
-          <Link to="/cart" aria-label={t('navigation.cart')} className="px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-900">
-            <ShoppingCart className="inline size-5" />
-          </Link>
+          <CartPopover>
+            <Link to="/cart" aria-label={t('navigation.cart')} className="relative px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-900">
+              <ShoppingCart className="inline size-5" />
+            </Link>
+          </CartPopover>
           <Link to="/wishlist" aria-label={t('navigation.wishlist')} className="px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-900">
             <Heart className="inline size-5" />
           </Link>

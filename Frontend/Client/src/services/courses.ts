@@ -26,6 +26,8 @@ export type CourseCardDto = {
   discountPercent?: number | null;
   finalPrice?: number | null;
   discountExpiresAt?: string | null;
+  // Duration field
+  durationInMinutes?: number | null;
   // Computed fields
   hasDiscount: boolean;
   effectivePrice: number;
@@ -170,7 +172,6 @@ export async function fetchCourses(page = 1, pageSize = 12, opts: {
     categoryName: course.categoryName,
     categoryId: course.categoryId,
     createdAt: course.createdAt,
-    publishedAt: course.publishedAt,
     thumbnailUrl: course.thumbnailUrl ?? null,
     // Media fields from CourseMedia
     primaryImageUrl: course.primaryImageUrl ?? null,
@@ -179,6 +180,8 @@ export async function fetchCourses(page = 1, pageSize = 12, opts: {
     discountPercent: course.discountPercent ?? null,
     finalPrice: course.finalPrice ?? null,
     discountExpiresAt: course.discountExpiresAt ?? null,
+    // Duration field
+    durationInMinutes: course.durationInMinutes ?? null,
     // Computed fields
     hasDiscount: !!(course.discountPercent != null && course.discountPercent > 0),
     effectivePrice: course.finalPrice ?? course.price ?? 0,

@@ -8,11 +8,13 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using Microsoft.AspNetCore.Identity;
 using Elearn.Domain.Entities.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,7 +93,14 @@ builder.Services.AddControllers()
 .AddFluentValidation(config =>
  {
      config.RegisterValidatorsFromAssemblyContaining<CreateCourseValidator>();
- });
+ })
+.AddJsonOptions(options =>
+{
+    // Đảm bảo DateTime luôn được serialize như ISO 8601 UTC format với 'Z' suffix
+    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    // Format DateTime như ISO 8601 UTC
+    options.JsonSerializerOptions.WriteIndented = false;
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

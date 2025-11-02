@@ -16,6 +16,8 @@ namespace Elearn.Infrastructure.Data
         public DbSet<Course> Courses { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<CourseMedia> CourseMedias { get; set; }
+        public DbSet<Promotion> Promotions { get; set; }
+        public DbSet<PromotionCourse> PromotionCourses { get; set; }
         public DbSet<ApplicationPermission> ApplicationPermissions { get; set; }
         public DbSet<ApplicationRolePermission> ApplicationRolePermissions { get; set; }
         public DbSet<InstructorProfile> InstructorProfiles { get; set; }
@@ -214,6 +216,56 @@ namespace Elearn.Infrastructure.Data
                 entity.Property(sp => sp.ApplicationUserId).IsRequired().HasMaxLength(450);
 
                 entity.HasIndex(sp => sp.ApplicationUserId).IsUnique();
+            });
+
+            // Configure Promotion entity
+            modelBuilder.Entity<Promotion>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.Name).IsRequired().HasMaxLength(200);
+                entity.Property(p => p.Description).HasMaxLength(1000);
+                entity.Property(p => p.Type).HasConversion<int>();
+                entity.Property(p => p.Scope).HasConversion<int>();
+                entity.Property(p => p.Value).HasColumnType("decimal(18,2)");
+                entity.Property(p => p.MinimumOrderAmount).HasColumnType("decimal(18,2)");
+                entity.Property(p => p.MaximumDiscountAmount).HasColumnType("decimal(18,2)");
+                entity.Property(p => p.Code).HasMaxLength(50);
+                
+                // Configure relationship with Category
+                entity.HasOne(p => p.Category)
+                    .WithMany()
+                    .HasForeignKey(p => p.CategoryId)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                // Indexes
+                entity.HasIndex(p => p.Code).IsUnique().HasFilter("[Code] IS NOT NULL");
+                entity.HasIndex(p => new { p.IsActive, p.StartDate, p.EndDate });
+                entity.HasIndex(p => p.StartDate);
+                entity.HasIndex(p => p.EndDate);
+            });
+
+            // Configure PromotionCourse entity (many-to-many)
+            modelBuilder.Entity<PromotionCourse>(entity =>
+            {
+                entity.HasKey(pc => pc.Id);
+                
+                entity.HasOne(pc => pc.Promotion)
+                    .WithMany(p => p.PromotionCourses)
+                    .HasForeignKey(pc => pc.PromotionId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(pc => pc.Course)
+                    .WithMany()
+                    .HasForeignKey(pc => pc.CourseId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Unique constraint: một course chỉ có thể có một promotion active cùng lúc (nếu cần)
+                entity.HasIndex(pc => new { pc.PromotionId, pc.CourseId }).IsUnique();
+                entity.HasIndex(pc => pc.CourseId);
+                entity.HasIndex(pc => pc.PromotionId);
             });
         }
     }

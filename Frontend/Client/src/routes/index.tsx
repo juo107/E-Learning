@@ -37,6 +37,7 @@ import ErrorPage from '../pages/ErrorPage';
 import Terms from '../pages/legal/Terms';
 import Privacy from '../pages/legal/Privacy';
 import Cookies from '../pages/legal/Cookies';
+import Cart from '../pages/Cart';
 
 export const router = createBrowserRouter([
   // Maintenance standalone (không Header/Footer)
@@ -47,6 +48,7 @@ export const router = createBrowserRouter([
       { path: '/', element: <Home /> },
       { path: '/courses', element: <Courses /> },
       { path: '/course/:id', element: <CourseDetail /> },
+      { path: '/cart', element: <Cart /> },
       { 
         path: '/dashboard', 
         element: (

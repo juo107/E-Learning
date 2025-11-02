@@ -8,6 +8,7 @@ namespace Elearn.Infrastructure.Repository
         ICourseRepository Courses { get; }
         ICategoryRepository Categories { get; }
         ICourseMediaRepository CourseMedias { get; }
+        IPromotionRepository Promotions { get; }
         Task<int> CompleteAsync();
     }
 }

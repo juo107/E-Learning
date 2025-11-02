@@ -1255,5 +1255,122 @@
       "downloadReports": "Download Reports",
       "contactUs": "Contact Us"
     }
+  },
+  "home": {
+    "hero": {
+      "title": "Learn without limits",
+      "subtitle": "Build skills for today, tomorrow, and beyond. Learn from experts around the world.",
+      "developedBy": "Developed by Juo",
+      "trendingNow": "Trending now",
+      "masterSkills": "Master modern skills with expert-led courses",
+      "masterDescription": "Up-skill in development, design, data, and more. New content weekly.",
+      "exploreCourses": "Explore courses"
+    },
+    "trustedBy": {
+      "title": "Trusted by companies of all sizes:"
+    },
+    "studentsAreViewing": {
+      "title": "Students are viewing",
+      "viewAll": "View all"
+    },
+    "bestsellers": {
+      "title": "Bestsellers"
+    }
+  },
+  "flashDeal": {
+    "badge": "Limited Time Offer",
+    "title": "Flash Sale - Limited Time Only!",
+    "description": "Get premium courses at unbeatable prices. Hurry up before the offer ends!",
+    "endsIn": "Ends in:",
+    "hours": "Hours",
+    "minutes": "Minutes",
+    "seconds": "Seconds",
+    "shopNow": "Shop Now - Save {{discount}}%",
+    "off": "OFF"
+  },
+  "stats": {
+    "title": "Join Millions of Learners",
+    "subtitle": "Discover why students worldwide choose us for their learning journey",
+    "activeLearners": {
+      "label": "Active Learners",
+      "suffix": "worldwide"
+    },
+    "onlineCourses": {
+      "label": "Online Courses",
+      "suffix": "available"
+    },
+    "expertInstructors": {
+      "label": "Expert Instructors",
+      "suffix": "teaching"
+    },
+    "countries": {
+      "label": "Countries",
+      "suffix": "reached"
+    },
+    "successRate": {
+      "label": "Success Rate",
+      "suffix": "job placement"
+    }
+  },
+  "newsletter": {
+    "title": "Get Exclusive Learning Offers",
+    "subtitle": "Subscribe to our newsletter and receive special discounts, course updates, and learning tips delivered to your inbox.",
+    "emailPlaceholder": "Enter your email address",
+    "subscribe": "Subscribe",
+    "subscribing": "Subscribing...",
+    "success": "Thank you for subscribing! Check your email for a special offer.",
+    "privacy": "🔒 We respect your privacy. Unsubscribe anytime."
+  },
+  "testimonials": {
+    "title": "What Our Students Say",
+    "subtitle": "Real feedback from learners who transformed their careers",
+    "testimonial1": {
+      "name": "John Smith",
+      "role": "Software Developer",
+      "comment": "This course significantly improved my programming skills. The instructor is very dedicated and the content is very practical.",
+      "course": "Full-Stack Web Development"
+    },
+    "testimonial2": {
+      "name": "Sarah Johnson",
+      "role": "UI/UX Designer",
+      "comment": "Excellent! I learned many new things about design thinking and was able to apply them immediately to my work.",
+      "course": "UI/UX Design Masterclass"
+    },
+    "testimonial3": {
+      "name": "Michael Chen",
+      "role": "Data Analyst",
+      "comment": "The Data Science course is very detailed and easy to understand. I can now analyze data professionally on my own.",
+      "course": "Data Science Fundamentals"
+    },
+    "testimonial4": {
+      "name": "Emily Rodriguez",
+      "role": "Marketing Manager",
+      "comment": "The course content is very up-to-date and relevant to current trends. I successfully applied it to my company's marketing campaigns.",
+      "course": "Digital Marketing Strategy"
+    }
+  },
+  "promoBanner": {
+    "startLearning": "Start Learning",
+    "featuredCourse": "Featured Course"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "emptyCart": "Your cart is empty",
+    "emptyDescription": "You haven't added any courses to your cart yet. Explore our amazing courses!",
+    "itemsCount": "{{count}} course(s) in your cart",
+    "browseCourses": "Browse Courses",
+    "remove": "Remove",
+    "total": "Total",
+    "checkout": "Checkout",
+    "checkoutMessage": "Checkout feature is under development",
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "tax": "Tax (10%)",
+    "clearAll": "Clear All",
+    "confirmClear": "Are you sure you want to remove all courses from your cart?",
+    "continueShopping": "Continue Shopping",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity"
   }
 }

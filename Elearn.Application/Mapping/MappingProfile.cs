@@ -3,6 +3,7 @@ using Elearn.Domain.Entities;
 using Elearn.Application.DTOs.Course;
 using Elearn.Application.DTOs.Category;
 using Elearn.Application.DTOs.CourseMedia;
+using Elearn.Application.DTOs.Promotion;
 
 namespace Elearn.Application.Mapping
 {
@@ -131,6 +132,34 @@ namespace Elearn.Application.Mapping
                 .ForMember(dest => dest.DeletedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.DeletedBy, opt => opt.Ignore())
                 .ForMember(dest => dest.Course, opt => opt.Ignore());
+
+            // Promotion mappings
+            CreateMap<Promotion, PromotionDto>()
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null))
+                .ForMember(dest => dest.CourseIds, opt => opt.Ignore()); // CourseIds sẽ được map manually
+
+            CreateMap<CreatePromotionDto, Promotion>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+                .ForMember(dest => dest.UsageCount, opt => opt.Ignore())
+                .ForMember(dest => dest.Category, opt => opt.Ignore())
+                .ForMember(dest => dest.PromotionCourses, opt => opt.Ignore());
+
+            CreateMap<UpdatePromotionDto, Promotion>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+                .ForMember(dest => dest.UsageCount, opt => opt.Ignore())
+                .ForMember(dest => dest.Category, opt => opt.Ignore())
+                .ForMember(dest => dest.PromotionCourses, opt => opt.Ignore())
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
         }
     }
 }

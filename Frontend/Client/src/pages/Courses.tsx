@@ -12,6 +12,7 @@ import {
 } from '../services/courses';
 import { fetchCategories } from '../services/categories';
 import FilterBar from '../components/filters/FilterBar';
+import CourseHoverCard from '../components/course/CourseHoverCard';
 
 export default function Courses() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,6 +25,20 @@ export default function Courses() {
   const [pageLoading, setPageLoading] = useState(false);
   const gridRef = useRef<HTMLDivElement | null>(null);
   const cacheRef = useRef<Map<number, Paginated<CourseCardDto>>>(new Map());
+  const [hoveredCourseId, setHoveredCourseId] = useState<string | null>(null);
+  const [hoverPosition, setHoverPosition] = useState<{ top: number; left: number } | null>(null);
+  const courseCardRefs = useRef<Map<string, HTMLAnchorElement>>(new Map());
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Filter/sort state (client-side on current page)
   const [query, setQuery] = useState(searchParam);
   const [categoryId, setCategoryId] = useState<string>(categoryParam || '');
@@ -114,7 +129,6 @@ export default function Courses() {
                   categoryName: byCode.categoryName,
                   categoryId: (byCode.categoryId as unknown as string) || undefined,
                   createdAt: byCode.createdAt,
-                  publishedAt: byCode.publishedAt,
                   thumbnailUrl: byCode.thumbnailUrl || undefined,
                   primaryImageUrl: undefined,
                   promoVideoUrl: undefined,
@@ -371,12 +385,87 @@ export default function Courses() {
             <div className="loading-spinner" aria-label="Loading page" />
           </div>
         )}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 ${pageLoading ? 'opacity-40' : 'animate-fade-in'}`}>
+        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 ${pageLoading ? 'opacity-40' : 'animate-fade-in'}`} style={{ overflow: 'visible' }}>
         {visible.map((c) => {
           const isFeatured = c.averageRating >= 4.5;
           const isFree = c.effectivePrice === 0;
+          const isHovered = hoveredCourseId === c.courseId;
+          
+          const handleMouseEnter = (e: React.MouseEvent<HTMLAnchorElement>) => {
+            // Clear any pending close timeout
+            if (hoverTimeoutRef.current) {
+              clearTimeout(hoverTimeoutRef.current);
+              hoverTimeoutRef.current = null;
+            }
+
+            // Immediate calculation without delay for better UX
+            const target = e.currentTarget;
+            if (!target || !document.contains(target)) {
+              return;
+            }
+
+            try {
+              const rect = target.getBoundingClientRect();
+              const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+              const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+              
+              // Calculate position: right side of the card, slightly below top
+              const cardWidth = 320; // hover card width
+              const cardHeight = 400; // approximate hover card height
+              const spacing = 16;
+              
+              let left = rect.right + scrollLeft + spacing;
+              let top = rect.top + scrollTop;
+              
+              // Check if card would overflow right edge
+              if (left + cardWidth > window.innerWidth + scrollLeft) {
+                left = rect.left + scrollLeft - cardWidth - spacing;
+              }
+              
+              // Check if card would overflow bottom edge
+              if (top + cardHeight > window.innerHeight + scrollTop) {
+                top = rect.bottom + scrollTop - cardHeight;
+              }
+              
+              // Ensure card doesn't go off top
+              if (top < scrollTop) {
+                top = scrollTop + 10;
+              }
+              
+              setHoverPosition({ top, left });
+              setHoveredCourseId(c.courseId);
+            } catch (error) {
+              console.error('Error calculating hover card position:', error);
+            }
+          };
+
+          const handleMouseLeave = () => {
+            // Clear any pending open timeout first
+            if (hoverTimeoutRef.current) {
+              clearTimeout(hoverTimeoutRef.current);
+              hoverTimeoutRef.current = null;
+            }
+            
+            // Delay closing to allow moving to hover card
+            hoverTimeoutRef.current = setTimeout(() => {
+              setHoveredCourseId(null);
+              setHoverPosition(null);
+              hoverTimeoutRef.current = null;
+            }, 150);
+          };
+
           return (
-          <a href={`/course/${c.courseId}`} key={c.courseId} className="rounded-xl bg-white dark:bg-gray-950 border border-gray-200/60 dark:border-gray-800/60 shadow-sm hover:shadow-lg transition-transform hover:-translate-y-0.5 relative overflow-hidden block">
+          <div key={c.courseId} className="relative" style={{ overflow: 'visible' }}>
+            <a 
+              ref={(el) => {
+                if (el) courseCardRefs.current.set(c.courseId, el);
+                else courseCardRefs.current.delete(c.courseId);
+              }}
+              href={`/course/${c.courseId}`} 
+              className="rounded-xl bg-white dark:bg-gray-950 border border-gray-200/60 dark:border-gray-800/60 shadow-sm hover:shadow-lg transition-transform hover:-translate-y-0.5 block group"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
             <div className="aspect-video w-full bg-gray-100 dark:bg-gray-800">
               <img
                 src={c.thumbnailUrl || `https://picsum.photos/seed/course-${c.courseId}/800/450`}
@@ -390,9 +479,9 @@ export default function Courses() {
               <div className="absolute top-2 left-2 flex gap-2">
                 {isFeatured && <span className="text-xs font-semibold bg-amber-400 text-black px-2 py-0.5 rounded">Featured</span>}
                 {isFree && <span className="text-xs font-semibold bg-emerald-500 text-white px-2 py-0.5 rounded">Free</span>}
-                {c.hasDiscount && c.discountPercent && (
+                {c.hasDiscount && c.discountPercent && c.discountPercent > 0 && (
                   <span className="text-xs font-semibold bg-red-500 text-white px-2 py-0.5 rounded">
-                    -{c.discountPercent}%
+                    -{Math.round(c.discountPercent)}%
                   </span>
                 )}
               </div>
@@ -407,14 +496,16 @@ export default function Courses() {
             <div className="mt-2 text-lg font-bold">
               {c.currency === 'VND' ? (
                 c.effectivePrice === 0 ? 'Miễn phí' : (
-                  <div className="flex items-center gap-2">
-                    {c.hasDiscount && c.price !== c.effectivePrice && (
-                      <span className="text-sm text-gray-500 line-through">
-                        {c.price?.toLocaleString?.('vi-VN') ?? c.price} ₫
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* Hiển thị giá gốc với line-through nếu có discount */}
+                    {c.hasDiscount && c.discountPercent && c.discountPercent > 0 && c.price && c.finalPrice && c.price > c.finalPrice && (
+                      <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
+                        {c.price.toLocaleString('vi-VN')} ₫
                       </span>
                     )}
-                    <span className="text-indigo-600">
-                      {c.effectivePrice?.toLocaleString?.('vi-VN') ?? c.effectivePrice} ₫
+                    {/* Hiển thị giá đã giảm hoặc giá gốc */}
+                    <span className={`${c.hasDiscount && c.finalPrice ? 'text-red-600 dark:text-red-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
+                      {(c.finalPrice ?? c.price ?? c.effectivePrice).toLocaleString('vi-VN')} ₫
                     </span>
                   </div>
                 )
@@ -422,6 +513,23 @@ export default function Courses() {
             </div>
             </div>
           </a>
+          
+          {/* Hover Card - Fixed positioning */}
+          {isHovered && hoverPosition && (
+            <CourseHoverCard
+              course={c}
+              isVisible={true}
+              position={hoverPosition}
+              onClose={() => {
+                if (hoverTimeoutRef.current) {
+                  clearTimeout(hoverTimeoutRef.current);
+                }
+                setHoveredCourseId(null);
+                setHoverPosition(null);
+              }}
+            />
+          )}
+          </div>
           );
         })}
           </div>
