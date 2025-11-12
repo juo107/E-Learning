@@ -1,4 +1,5 @@
-﻿using Elearn.Domain.Entities.Enums;
+using Elearn.Domain.Entities.Enums;
+using Elearn.Domain.Entities.Identity;
 
 namespace Elearn.Domain.Entities
 {
@@ -20,6 +21,10 @@ namespace Elearn.Domain.Entities
         public Guid? CategoryId { get; set; }
         public Category? Category { get; set; }
         
+        // Foreign key to InstructorProfile
+        public int? InstructorProfileId { get; set; }
+        public InstructorProfile? InstructorProfile { get; set; }
+        
         // Publication state
         public bool IsPublished { get; set; } = false;
         public DateTime? PublishedAt { get; set; }
@@ -33,3 +38,4 @@ namespace Elearn.Domain.Entities
         public ICollection<CourseMedia> CourseMedias { get; set; } = new List<CourseMedia>();
     }
 }
+

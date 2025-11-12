@@ -72,5 +72,10 @@ namespace Elearn.Infrastructure.Repository.Interfaces
             bool isDescending = true,
             bool onlyPublished = false,
             bool includeDeleted = false);
+        
+        /// <summary>
+        /// Lấy courses theo instructor profile ID
+        /// </summary>
+        Task<IEnumerable<Course>> GetCoursesByInstructorIdAsync(int instructorProfileId);
     }
 }

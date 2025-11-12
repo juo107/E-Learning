@@ -9,6 +9,12 @@ namespace Elearn.Infrastructure.Repository
         ICategoryRepository Categories { get; }
         ICourseMediaRepository CourseMedias { get; }
         IPromotionRepository Promotions { get; }
+        IOrderRepository Orders { get; }
+        IPaymentRepository Payments { get; }
+        IUserCourseRepository UserCourses { get; }
+        ICartItemRepository CartItems { get; }
+        IBlacklistedTokenRepository BlacklistedTokens { get; }
+        IInstructorProfileRepository InstructorProfiles { get; }
         Task<int> CompleteAsync();
     }
 }

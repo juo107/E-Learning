@@ -2,6 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { Heart, ShoppingCart, Clock } from 'lucide-react';
 import type { CourseCardDto } from '../../services/courses';
 import { useCart } from '../../store/useCart';
+import { addToCart, getCartItems, type CartItemDto } from '../../services/cart';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 interface CourseHoverCardProps {
   course: CourseCardDto;
@@ -11,10 +15,14 @@ interface CourseHoverCardProps {
 }
 
 export default function CourseHoverCard({ course, isVisible, position, onClose }: CourseHoverCardProps) {
-  const { add } = useCart();
+  const { add, items } = useCart();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement>(null);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [cartItems, setCartItems] = useState<CartItemDto[]>([]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -24,6 +32,21 @@ export default function CourseHoverCard({ course, isVisible, position, onClose }
       }
     };
   }, []);
+
+  // Load cart items to check if course is already in cart
+  useEffect(() => {
+    const loadCart = async () => {
+      if (!isAuthenticated) return;
+      try {
+        const items = await getCartItems();
+        setCartItems(items);
+      } catch (err) {
+        // Silently fail, will check localStorage cart instead
+        console.error('Failed to load cart:', err);
+      }
+    };
+    loadCart();
+  }, [isAuthenticated]);
 
   // Format level text
   const getLevelText = (level?: string) => {
@@ -73,20 +96,68 @@ export default function CourseHoverCard({ course, isVisible, position, onClose }
     return `Đã cập nhật ${months[updatedDate.getMonth()]} năm ${updatedDate.getFullYear()}`;
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Convert CourseCardDto to Course format for cart
-    const cartCourse = {
-      id: course.courseId,
-      courseId: course.courseId,
-      title: course.title,
-      price: course.price ?? 0,
-      effectivePrice: course.finalPrice ?? course.price ?? course.effectivePrice ?? 0,
-      thumbnailUrl: course.thumbnailUrl,
-      // Add other required fields
-    } as any;
-    add(cartCourse);
+    
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: `/course/${course.courseId}` } });
+      return;
+    }
+
+    // Check if course is already in cart
+    const courseIdStr = course.courseId.toString();
+    const isInBackendCart = cartItems.some(item => item.courseId === courseIdStr);
+    const isInLocalCart = Object.keys(items).some(key => {
+      const item = items[parseInt(key)];
+      const itemCourseId = (item?.course as any)?.courseId ?? (item?.course as any)?.id;
+      return itemCourseId?.toString() === courseIdStr;
+    });
+
+    if (isInBackendCart || isInLocalCart) {
+      toast('Đã có trong giỏ hàng', {
+        icon: '🛒',
+        duration: 3000,
+        style: {
+          background: '#fbbf24',
+          color: '#ffffff',
+        },
+      });
+      return;
+    }
+
+    setAddingToCart(true);
+    
+    try {
+      // Add to cart via API
+      await addToCart(course.courseId.toString());
+      
+      // Reload cart items
+      const updatedItems = await getCartItems();
+      setCartItems(updatedItems);
+      
+      // Also add to local storage cart for immediate UI update
+      const cartCourse = {
+        id: course.courseId,
+        courseId: course.courseId,
+        title: course.title,
+        price: course.price ?? 0,
+        effectivePrice: course.finalPrice ?? course.price ?? course.effectivePrice ?? 0,
+        thumbnailUrl: course.thumbnailUrl,
+      } as any;
+      add(cartCourse);
+      
+      toast.success('Đã thêm vào giỏ hàng!', {
+        icon: '🛒',
+        duration: 3000,
+      });
+    } catch (err: any) {
+      toast.error(err?.message || 'Không thể thêm vào giỏ hàng', {
+        duration: 4000,
+      });
+    } finally {
+      setAddingToCart(false);
+    }
   };
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
@@ -102,12 +173,16 @@ export default function CourseHoverCard({ course, isVisible, position, onClose }
   return (
     <div
       ref={cardRef}
-      className="fixed z-[9999] w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl overflow-hidden pointer-events-auto transition-all duration-200 ease-out"
+      className="fixed z-[9999] w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl overflow-hidden pointer-events-auto transition-all duration-300 ease-out"
       style={{
         top: position?.top ? `${position.top}px` : 'auto',
         left: position?.left ? `${position.left}px` : 'auto',
         opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(-10px)',
+        transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(-10px) scale(0.95)',
+        willChange: 'transform, opacity',
+        backfaceVisibility: 'hidden',
+        WebkitFontSmoothing: 'antialiased',
+        animation: isVisible ? 'hover-card-fade 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards' : 'none'
       }}
       onMouseEnter={(e) => {
         e.stopPropagation();
@@ -119,15 +194,15 @@ export default function CourseHoverCard({ course, isVisible, position, onClose }
       }}
       onMouseLeave={(e) => {
         e.stopPropagation();
-        // Small delay before closing
+        // Tăng delay trước khi đóng để user có thời gian click vào button
         closeTimeoutRef.current = setTimeout(() => {
           onClose?.();
-        }, 150);
+        }, 400); // Tăng từ 150ms lên 400ms
       }}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-        <h3 className="font-semibold text-gray-900 dark:text-white text-base line-clamp-2 mb-2">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+        <h3 className="font-semibold text-gray-900 dark:text-white text-base line-clamp-2 mb-2 transition-colors duration-200">
           {course.title}
         </h3>
         {course.createdAt && (
@@ -199,21 +274,22 @@ export default function CourseHoverCard({ course, isVisible, position, onClose }
         <div className="flex items-center gap-2">
           <button
             onClick={handleAddToCart}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+            disabled={addingToCart}
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             <ShoppingCart className="w-4 h-4" />
-            <span>Thêm vào giỏ hàng</span>
+            <span>{addingToCart ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}</span>
           </button>
           <button
             onClick={handleToggleWishlist}
-            className={`p-2.5 rounded-lg border transition-colors ${
+            className={`p-2.5 rounded-lg border transition-all duration-200 transform hover:scale-110 active:scale-95 ${
               isWishlisted
-                ? 'bg-pink-50 dark:bg-pink-900/20 border-pink-300 dark:border-pink-700 text-pink-600 dark:text-pink-400'
-                : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600'
+                ? 'bg-pink-50 dark:bg-pink-900/20 border-pink-300 dark:border-pink-700 text-pink-600 dark:text-pink-400 shadow-md'
+                : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 hover:shadow-md'
             }`}
             aria-label="Add to wishlist"
           >
-            <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
+            <Heart className={`w-5 h-5 transition-all duration-200 ${isWishlisted ? 'fill-current scale-110' : ''}`} />
           </button>
         </div>
       </div>

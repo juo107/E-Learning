@@ -20,13 +20,11 @@ namespace Elearn.WebAPI.Controllers
         /// </summary>
         [HttpGet("active")]
         [ProducesResponseType(typeof(BaseResponse<IEnumerable<PromotionDto>>), StatusCodes.Status200OK)]
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any)]
         public async Task<IActionResult> GetActivePromotions()
         {
-            // Thêm cache-control headers để client không cache response
-            Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
-            Response.Headers.Append("Pragma", "no-cache");
-            Response.Headers.Append("Expires", "0");
+            // Cache 30 giây - client có thể cache response
+            Response.Headers.Append("Cache-Control", "public, max-age=30");
             
             var result = await _promotionService.GetActivePromotionsAsync();
             return HandleResponse(result);
@@ -37,13 +35,11 @@ namespace Elearn.WebAPI.Controllers
         /// </summary>
         [HttpGet("category/{categoryId}")]
         [ProducesResponseType(typeof(BaseResponse<IEnumerable<PromotionDto>>), StatusCodes.Status200OK)]
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any)]
         public async Task<IActionResult> GetPromotionsByCategory(Guid categoryId)
         {
-            // Thêm cache-control headers để client không cache response
-            Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
-            Response.Headers.Append("Pragma", "no-cache");
-            Response.Headers.Append("Expires", "0");
+            // Cache 30 giây - client có thể cache response
+            Response.Headers.Append("Cache-Control", "public, max-age=30");
             
             var result = await _promotionService.GetPromotionsByCategoryAsync(categoryId);
             return HandleResponse(result);

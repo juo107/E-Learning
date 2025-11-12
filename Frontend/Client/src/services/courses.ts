@@ -91,6 +91,20 @@ export type CourseDetailDto = {
   effectivePrice: number;
   hasDiscount: boolean;
   currency?: string;
+  // Instructor information
+  instructor?: {
+    id: number;
+    userId: string;
+    fullName: string;
+    email: string;
+    avatarUrl?: string | null;
+    bio: string;
+    profession: string;
+    rating: number;
+    totalCourses: number;
+    totalStudents: number;
+    totalReviews: number;
+  };
 };
 export type Paginated<T> = {
   data: T[];

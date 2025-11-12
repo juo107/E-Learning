@@ -7,6 +7,7 @@ using Elearn.Infrastructure.Repository;
 using Elearn.Infrastructure.Services;
 using Elearn.Search.Models;
 using Elearn.Search.Services;
+using Microsoft.Extensions.Logging;
 
 namespace Elearn.Application.Services.Implementations
 {
@@ -17,14 +18,22 @@ namespace Elearn.Application.Services.Implementations
         private readonly ICourseSearchRepository _courseSearchRepository;
         private readonly IRedisCacheService _cache;
         private readonly IInMemoryIndexService _memoryIndex;
+        private readonly ILogger<CourseService> _logger;
 
-        public CourseService(IUnitOfWork unitOfWork, IMapper mapper, ICourseSearchRepository courseSearchRepository, IRedisCacheService cache, IInMemoryIndexService memoryIndex)
+        public CourseService(
+            IUnitOfWork unitOfWork, 
+            IMapper mapper, 
+            ICourseSearchRepository courseSearchRepository, 
+            IRedisCacheService cache, 
+            IInMemoryIndexService memoryIndex,
+            ILogger<CourseService> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _courseSearchRepository = courseSearchRepository;
             _cache = cache;
             _memoryIndex = memoryIndex;
+            _logger = logger;
         }
 
         public async Task<BaseResponse<IEnumerable<CourseDto>>> GetAllCoursesAsync(QueryParameters? parameters = null)
@@ -81,20 +90,82 @@ namespace Elearn.Application.Services.Implementations
             try
             {
                 var cacheKey = $"course:{id}";
-                var cachedCourse = await _cache.GetAsync<CourseDetailsDto>(cacheKey);
-                if (cachedCourse != null)
-                {
-                    return BaseResponse<CourseDetailsDto>.Ok(cachedCourse, "Course retrieved from cache");
-                }
+                // Temporarily bypass cache to ensure fresh data
+                // var cachedCourse = await _cache.GetAsync<CourseDetailsDto>(cacheKey);
+                // if (cachedCourse != null)
+                // {
+                //     return BaseResponse<CourseDetailsDto>.Ok(cachedCourse, "Course retrieved from cache");
+                // }
 
-                var course = await _unitOfWork.Courses.GetByIdWithIncludesAsync(id, c => c.Category, c => c.CourseMedias);
+                var course = await _unitOfWork.Courses.GetByIdWithIncludesAsync(id, 
+                    c => c.Category, 
+                    c => c.CourseMedias,
+                    c => c.InstructorProfile!,
+                    c => c.InstructorProfile!.ApplicationUser);
                 if (course == null)
                     return BaseResponse<CourseDetailsDto>.Fail("Course not found");
 
+                _logger.LogInformation("Course {CourseId} loaded. InstructorProfileId: {InstructorProfileId}", 
+                    course.Id, course.InstructorProfileId);
+
                 var courseDto = _mapper.Map<CourseDetailsDto>(course);
+                
+                // Map instructor information if available
+                if (course.InstructorProfile != null && course.InstructorProfile.ApplicationUser != null)
+                {
+                    var instructor = course.InstructorProfile;
+                    var user = instructor.ApplicationUser;
+                    
+                    // Debug logging
+                    _logger.LogInformation("Mapping instructor for course {CourseId}. InstructorId: {InstructorId}, UserId: {UserId}, FullName: {FullName}, Email: {Email}",
+                        course.Id, instructor.Id, user.Id, user.FullName, user.Email);
+                    
+                    // Count total courses by this instructor
+                    var totalCourses = await _unitOfWork.Courses.GetCoursesByInstructorIdAsync(instructor.Id);
+                    var coursesList = totalCourses.ToList();
+                    
+                    // Determine FullName with fallback
+                    var fullName = !string.IsNullOrWhiteSpace(user.FullName) 
+                        ? user.FullName 
+                        : (!string.IsNullOrWhiteSpace(user.Email) 
+                            ? user.Email.Split('@')[0] 
+                            : "Giảng viên");
+                    
+                    _logger.LogInformation("Final FullName for instructor: {FullName}", fullName);
+                    
+                    courseDto.Instructor = new DTOs.Instructor.InstructorDto
+                    {
+                        Id = instructor.Id,
+                        UserId = user.Id,
+                        FullName = fullName,
+                        Email = user.Email ?? string.Empty,
+                        AvatarUrl = user.AvatarUrl,
+                        Bio = instructor.Bio ?? string.Empty,
+                        Profession = instructor.Profession ?? string.Empty,
+                        Rating = (double)instructor.Rating,
+                        TotalCourses = coursesList.Count,
+                        TotalStudents = 0, // TODO: Calculate from UserCourses
+                        TotalReviews = 0 // TODO: Calculate from reviews
+                    };
+                }
+                else
+                {
+                    _logger.LogWarning("Course {CourseId} does not have InstructorProfile or ApplicationUser", course.Id);
+                }
                 
                 // Cache for 30 minutes
                 await _cache.SetAsync(cacheKey, courseDto, TimeSpan.FromMinutes(30));
+                
+                // Log the instructor data for debugging
+                if (courseDto.Instructor != null)
+                {
+                    _logger.LogInformation("Course {CourseId} instructor mapped: Id={Id}, FullName={FullName}, Email={Email}",
+                        course.Id, courseDto.Instructor.Id, courseDto.Instructor.FullName, courseDto.Instructor.Email);
+                }
+                else
+                {
+                    _logger.LogWarning("Course {CourseId} has no instructor mapped", course.Id);
+                }
                 
                 return BaseResponse<CourseDetailsDto>.Ok(courseDto, "Course retrieved successfully");
             }
@@ -479,6 +550,68 @@ namespace Elearn.Application.Services.Implementations
             catch (Exception ex)
             {
                 return BaseResponse<bool>.Fail($"Error indexing courses: {ex.Message}");
+            }
+        }
+
+        public async Task<BaseResponse<string>> AssignInstructorsToCoursesAsync()
+        {
+            try
+            {
+                // Lấy tất cả instructor profiles
+                var instructors = await _unitOfWork.InstructorProfiles.GetAllAsync();
+                var instructorList = instructors.ToList();
+
+                if (instructorList.Count == 0)
+                {
+                    return BaseResponse<string>.Fail("No instructors found in database");
+                }
+
+                // Lấy tất cả courses chưa có instructor
+                var allCourses = await _unitOfWork.Courses.GetAllAsync();
+                var coursesWithoutInstructor = allCourses
+                    .Where(c => c.InstructorProfileId == null || c.InstructorProfileId == 0)
+                    .ToList();
+
+                if (coursesWithoutInstructor.Count == 0)
+                {
+                    return BaseResponse<string>.Ok("All courses already have instructors assigned");
+                }
+
+                // Gán instructor cho courses (round-robin)
+                int assignedCount = 0;
+                for (int i = 0; i < coursesWithoutInstructor.Count; i++)
+                {
+                    var course = coursesWithoutInstructor[i];
+                    var instructor = instructorList[i % instructorList.Count];
+                    
+                    course.InstructorProfileId = instructor.Id;
+                    course.UpdatedAt = DateTime.UtcNow;
+                    course.UpdatedBy = "System";
+                    
+                    _unitOfWork.Courses.Update(course);
+                    assignedCount++;
+                }
+
+                await _unitOfWork.CompleteAsync();
+
+                // Clear cache for all affected courses
+                foreach (var course in coursesWithoutInstructor)
+                {
+                    await _cache.RemoveAsync($"course:{course.Id}");
+                }
+                await _cache.RemoveByPatternAsync("courses:*");
+
+                var message = $"Successfully assigned instructors to {assignedCount} courses. " +
+                             $"Total instructors: {instructorList.Count}, " +
+                             $"Total courses assigned: {assignedCount}";
+
+                _logger.LogInformation(message);
+                return BaseResponse<string>.Ok(message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error assigning instructors to courses");
+                return BaseResponse<string>.Fail($"Error assigning instructors: {ex.Message}");
             }
         }
     }

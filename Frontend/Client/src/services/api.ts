@@ -27,14 +27,24 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     // Normalize error shape
+    const responseData = error?.response?.data;
+    
+    // Try to extract message from BaseResponse structure
+    let message = 'Request failed';
+    if (responseData) {
+      // BaseResponse structure: { message: "...", success: false, data: ... }
+      message = responseData.message 
+        || responseData.title 
+        || (typeof responseData === 'string' ? responseData : 'Request failed');
+    } else {
+      message = error?.message || 'Request failed';
+    }
+    
     const normalized = {
       status: error?.response?.status ?? 0,
-      message:
-        error?.response?.data?.message ||
-        error?.response?.data?.title ||
-        error?.message ||
-        'Request failed',
-      data: error?.response?.data,
+      message: message,
+      data: responseData,
+      response: error?.response,
     };
     return Promise.reject(normalized);
   }

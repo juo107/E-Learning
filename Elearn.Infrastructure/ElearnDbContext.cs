@@ -22,6 +22,12 @@ namespace Elearn.Infrastructure.Data
         public DbSet<ApplicationRolePermission> ApplicationRolePermissions { get; set; }
         public DbSet<InstructorProfile> InstructorProfiles { get; set; }
         public DbSet<StudentProfile> StudentProfiles { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<UserCourse> UserCourses { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<BlacklistedToken> BlacklistedTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -266,6 +272,209 @@ namespace Elearn.Infrastructure.Data
                 entity.HasIndex(pc => new { pc.PromotionId, pc.CourseId }).IsUnique();
                 entity.HasIndex(pc => pc.CourseId);
                 entity.HasIndex(pc => pc.PromotionId);
+            });
+
+            // Configure Payment entity
+            modelBuilder.Entity<Payment>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+                entity.Property(p => p.OrderId).IsRequired();
+                entity.Property(p => p.Provider).IsRequired().HasConversion<int>();
+                entity.Property(p => p.ProviderMethod).IsRequired().HasConversion<int>();
+                entity.Property(p => p.Amount).IsRequired().HasColumnType("decimal(18,2)");
+                entity.Property(p => p.Currency).IsRequired().HasMaxLength(10);
+                entity.Property(p => p.Status).IsRequired().HasConversion<int>();
+                entity.Property(p => p.AttemptNo).IsRequired().HasDefaultValue(1);
+                entity.Property(p => p.ReturnUrl).IsRequired().HasMaxLength(1000);
+                entity.Property(p => p.IpnUrl).IsRequired().HasMaxLength(1000);
+                entity.Property(p => p.FailureReason).HasMaxLength(1000);
+                entity.Property(p => p.PaidAt).IsRequired(false);
+
+                // Configure relationship with Order
+                entity.HasOne(p => p.Order)
+                    .WithMany(o => o.Payments)
+                    .HasForeignKey(p => p.OrderId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Indexes
+                entity.HasIndex(p => p.OrderId);
+                entity.HasIndex(p => p.Status);
+                entity.HasIndex(p => new { p.OrderId, p.Status });
+            });
+
+            // Configure Order entity
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasKey(o => o.Id);
+                entity.Property(o => o.OrderCode).IsRequired().HasMaxLength(50);
+                entity.Property(o => o.UserId).IsRequired().HasMaxLength(450);
+                entity.Property(o => o.Status).IsRequired().HasConversion<int>();
+                entity.Property(o => o.Currency).IsRequired().HasMaxLength(10);
+                entity.Property(o => o.Subtotal).IsRequired().HasColumnType("decimal(18,2)");
+                entity.Property(o => o.Discount).IsRequired().HasColumnType("decimal(18,2)");
+                entity.Property(o => o.TotalAmount).IsRequired().HasColumnType("decimal(18,2)");
+                entity.Property(o => o.ClientIp).HasMaxLength(50);
+
+                // Configure relationship with ApplicationUser
+                entity.HasOne(o => o.User)
+                    .WithMany()
+                    .HasForeignKey(o => o.UserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Unique constraint on OrderCode
+                entity.HasIndex(o => o.OrderCode).IsUnique();
+
+                // Indexes
+                entity.HasIndex(o => o.UserId);
+                entity.HasIndex(o => o.Status);
+                entity.HasIndex(o => new { o.UserId, o.Status });
+                entity.HasIndex(o => o.CreatedAt);
+            });
+
+            // Configure OrderItem entity
+            modelBuilder.Entity<OrderItem>(entity =>
+            {
+                entity.HasKey(oi => oi.Id);
+                entity.Property(oi => oi.OrderId).IsRequired();
+                entity.Property(oi => oi.CourseId).IsRequired();
+                entity.Property(oi => oi.Quantity).IsRequired().HasDefaultValue(1);
+                entity.Property(oi => oi.UnitPrice).IsRequired().HasColumnType("decimal(18,2)");
+                entity.Property(oi => oi.DiscountAmount).IsRequired().HasColumnType("decimal(18,2)");
+                entity.Property(oi => oi.TotalPrice).IsRequired().HasColumnType("decimal(18,2)");
+                entity.Property(oi => oi.InstructorId).IsRequired(false).HasMaxLength(450);
+                entity.Property(oi => oi.PriceSnapshotJson).HasMaxLength(4000);
+
+                // Configure relationship with Order
+                entity.HasOne(oi => oi.Order)
+                    .WithMany(o => o.OrderItems)
+                    .HasForeignKey(oi => oi.OrderId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Configure relationship with Course
+                entity.HasOne(oi => oi.Course)
+                    .WithMany()
+                    .HasForeignKey(oi => oi.CourseId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Configure relationship with Instructor (ApplicationUser) - Optional
+                entity.HasOne(oi => oi.Instructor)
+                    .WithMany()
+                    .HasForeignKey(oi => oi.InstructorId)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                // Indexes
+                entity.HasIndex(oi => oi.OrderId);
+                entity.HasIndex(oi => oi.CourseId);
+                entity.HasIndex(oi => oi.InstructorId);
+            });
+
+            // Configure UserCourse entity
+            modelBuilder.Entity<UserCourse>(entity =>
+            {
+                entity.HasKey(uc => uc.Id);
+                entity.Property(uc => uc.UserId).IsRequired().HasMaxLength(450);
+                entity.Property(uc => uc.CourseId).IsRequired();
+                entity.Property(uc => uc.OrderItemId).IsRequired();
+                entity.Property(uc => uc.OrderId).IsRequired();
+                entity.Property(uc => uc.PurchasePrice).IsRequired().HasColumnType("decimal(18,2)");
+                entity.Property(uc => uc.EnrolledAt).IsRequired();
+                entity.Property(uc => uc.Status).IsRequired().HasConversion<int>();
+                entity.Property(uc => uc.ProgressPercent).IsRequired().HasDefaultValue(0);
+                entity.Property(uc => uc.IsCompleted).IsRequired().HasDefaultValue(false);
+                entity.Property(uc => uc.Review).HasMaxLength(2000);
+                entity.Property(uc => uc.Rating).HasDefaultValue(null);
+
+                // Configure relationship with ApplicationUser
+                entity.HasOne(uc => uc.User)
+                    .WithMany()
+                    .HasForeignKey(uc => uc.UserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Configure relationship with Course
+                entity.HasOne(uc => uc.Course)
+                    .WithMany()
+                    .HasForeignKey(uc => uc.CourseId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Configure relationship with OrderItem
+                entity.HasOne(uc => uc.OrderItem)
+                    .WithMany()
+                    .HasForeignKey(uc => uc.OrderItemId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Configure relationship with Order
+                entity.HasOne(uc => uc.Order)
+                    .WithMany()
+                    .HasForeignKey(uc => uc.OrderId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Unique constraint: một user chỉ có thể mua một course một lần (trừ khi bị revoked/expired)
+                // Hoặc có thể cho phép mua lại nếu cần, thì bỏ unique constraint này
+                entity.HasIndex(uc => new { uc.UserId, uc.CourseId, uc.Status })
+                    .HasDatabaseName("IX_UserCourse_User_Course_Status");
+
+                // Indexes for common queries
+                entity.HasIndex(uc => uc.UserId);
+                entity.HasIndex(uc => uc.CourseId);
+                entity.HasIndex(uc => uc.OrderId);
+                entity.HasIndex(uc => uc.OrderItemId);
+                entity.HasIndex(uc => uc.Status);
+                entity.HasIndex(uc => uc.EnrolledAt);
+                entity.HasIndex(uc => new { uc.UserId, uc.Status });
+                entity.HasIndex(uc => new { uc.CourseId, uc.Status });
+            });
+
+            // Configure CartItem entity
+            modelBuilder.Entity<CartItem>(entity =>
+            {
+                entity.HasKey(ci => ci.Id);
+                entity.Property(ci => ci.UserId).HasMaxLength(450);
+                entity.Property(ci => ci.SessionId).HasMaxLength(200);
+                entity.Property(ci => ci.CourseId).IsRequired();
+                entity.Property(ci => ci.PriceAtAdd).IsRequired().HasColumnType("decimal(18,2)");
+                entity.Property(ci => ci.AppliedCouponCode).HasMaxLength(50);
+                entity.Property(ci => ci.Status).IsRequired().HasConversion<int>();
+                entity.Property(ci => ci.AddedAt).IsRequired();
+
+                // Configure relationship with ApplicationUser (optional)
+                entity.HasOne(ci => ci.User)
+                    .WithMany()
+                    .HasForeignKey(ci => ci.UserId)
+                    .IsRequired(false)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Configure relationship with Course
+                entity.HasOne(ci => ci.Course)
+                    .WithMany()
+                    .HasForeignKey(ci => ci.CourseId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Indexes for common queries
+                entity.HasIndex(ci => ci.UserId).HasFilter("[UserId] IS NOT NULL");
+                entity.HasIndex(ci => ci.SessionId).HasFilter("[SessionId] IS NOT NULL");
+                entity.HasIndex(ci => ci.CourseId);
+                entity.HasIndex(ci => ci.Status);
+                entity.HasIndex(ci => new { ci.UserId, ci.Status }).HasFilter("[UserId] IS NOT NULL");
+                entity.HasIndex(ci => new { ci.SessionId, ci.Status }).HasFilter("[SessionId] IS NOT NULL");
+                entity.HasIndex(ci => new { ci.CourseId, ci.Status });
+                
+                // Unique constraint: một user/session chỉ có thể có một course active trong giỏ
+                entity.HasIndex(ci => new { ci.UserId, ci.CourseId, ci.Status })
+                    .HasDatabaseName("IX_CartItem_User_Course_Status")
+                    .HasFilter("[UserId] IS NOT NULL AND [Status] = 0");
+                entity.HasIndex(ci => new { ci.SessionId, ci.CourseId, ci.Status })
+                    .HasDatabaseName("IX_CartItem_Session_Course_Status")
+                    .HasFilter("[SessionId] IS NOT NULL AND [Status] = 0");
             });
         }
     }

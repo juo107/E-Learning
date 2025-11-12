@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { fetchCourseById, type CourseDetailDto } from '../services/courses';
+import { addToCart, getCartItems, type CartItemDto } from '../services/cart';
+import { getInstructorCourses } from '../services/instructor';
+import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../store/useCart';
+import { Star } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 function SectionAccordion({ sec, index }: { sec: any; index: number }) {
   const [open, setOpen] = useState(index === 0);
@@ -63,9 +69,16 @@ function SectionAccordion({ sec, index }: { sec: any; index: number }) {
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { items } = useCart();
   const [course, setCourse] = useState<CourseDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [cartError, setCartError] = useState<string | null>(null);
+  const [cartItems, setCartItems] = useState<CartItemDto[]>([]);
+  const [instructorCourses, setInstructorCourses] = useState<any[]>([]);
 
   useEffect(() => {
     if (!id) {
@@ -80,11 +93,127 @@ export default function CourseDetail() {
     let cancelled = false;
     setLoading(true); setError(null);
     fetchCourseById(courseId)
-      .then((c) => { if (!cancelled) setCourse(enrichWithMock(c)); })
+      .then((c) => { 
+        if (!cancelled) {
+          console.log('Course data received:', c);
+          console.log('Instructor data:', c.instructor);
+          setCourse(c); 
+        }
+      })
       .catch((e) => { if (!cancelled) setError(e?.message ?? 'Failed to load'); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [id]);
+
+  // Load cart items to check if course is already in cart
+  useEffect(() => {
+    const loadCart = async () => {
+      if (!isAuthenticated) return;
+      try {
+        const items = await getCartItems();
+        setCartItems(items);
+      } catch (err) {
+        // Silently fail, will check localStorage cart instead
+        console.error('Failed to load cart:', err);
+      }
+    };
+    loadCart();
+  }, [isAuthenticated]);
+
+  // Load instructor courses when course is loaded
+  useEffect(() => {
+    const loadInstructorCourses = async () => {
+      if (!course?.instructor?.id) return;
+      
+      // Validate instructor ID is a valid number
+      const instructorId = typeof course.instructor.id === 'number' 
+        ? course.instructor.id 
+        : parseInt(course.instructor.id, 10);
+      
+      if (isNaN(instructorId) || instructorId <= 0) {
+        console.warn('Invalid instructor ID:', course.instructor.id);
+        return;
+      }
+      
+      try {
+        const courses = await getInstructorCourses(instructorId);
+        // Filter out current course
+        setInstructorCourses(courses.filter((c: any) => c.id !== course.courseId));
+      } catch (err) {
+        console.error('Failed to load instructor courses:', err);
+      }
+    };
+    loadInstructorCourses();
+  }, [course?.instructor?.id, course?.courseId]);
+
+  const handleAddToCart = async () => {
+    if (!course) return;
+    
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: `/course/${id}` } });
+      return;
+    }
+
+    // Check if course is already in cart
+    const courseIdStr = course.courseId.toString();
+    const isInBackendCart = cartItems.some(item => item.courseId === courseIdStr);
+    const isInLocalCart = Object.keys(items).some(key => {
+      const item = items[parseInt(key)];
+      const itemCourseId = (item?.course as any)?.courseId ?? (item?.course as any)?.id;
+      return itemCourseId?.toString() === courseIdStr;
+    });
+
+    if (isInBackendCart || isInLocalCart) {
+      toast('Đã có trong giỏ hàng', {
+        icon: '🛒',
+        duration: 3000,
+        style: {
+          background: '#fbbf24',
+          color: '#ffffff',
+        },
+      });
+      return;
+    }
+
+    setAddingToCart(true);
+    setCartError(null);
+    
+    try {
+      await addToCart(course.courseId.toString());
+      // Reload cart items
+      const updatedItems = await getCartItems();
+      setCartItems(updatedItems);
+      
+      toast.success('Đã thêm vào giỏ hàng!', {
+        icon: '🛒',
+        duration: 3000,
+      });
+    } catch (err: any) {
+      const errorMessage = err?.message || 'Không thể thêm vào giỏ hàng';
+      setCartError(errorMessage);
+      toast.error(errorMessage, {
+        duration: 4000,
+      });
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = () => {
+    if (!course) return;
+    
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: `/course/${id}` } });
+      return;
+    }
+
+    // Redirect đến trang checkout với course ID
+    navigate('/checkout', {
+      state: {
+        courseIds: [course.courseId.toString()],
+      },
+    });
+  };
 
   if (loading) return (
     <div className="p-10 flex items-center justify-center"><div className="loading-spinner" /></div>
@@ -210,33 +339,131 @@ export default function CourseDetail() {
           )}
 
           {/* Instructor */}
-          {anyCourse?.instructor && (
+          {course?.instructor && (
             <div className="mt-8">
               <h2 className="text-xl font-semibold mb-3">Giảng viên</h2>
-              <div className="flex items-start gap-4 rounded-xl border border-gray-200/60 dark:border-gray-800/60 p-4">
-                <img src={anyCourse.instructor.avatarUrl || `https://i.pravatar.cc/96?u=${anyCourse.instructor.id}`} alt={anyCourse.instructor.name} className="w-16 h-16 rounded-full object-cover"/>
-                <div>
-                  <div className="font-semibold">{anyCourse.instructor.name}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{anyCourse.instructor.title || 'Instructor'}</div>
-                  {anyCourse.instructor.bio && (
-                    <p className="mt-2 text-gray-700 dark:text-gray-300 text-sm">{anyCourse.instructor.bio}</p>
-                  )}
-                </div>
-              </div>
+              {(() => {
+                // Handle both backend format and mock format
+                const instructor = course.instructor as any;
+                
+                // Get instructor name - support both formats
+                const instructorName = instructor.fullName 
+                  || instructor.name 
+                  || instructor.email?.split('@')[0] 
+                  || 'Giảng viên';
+                
+                // Get profession/title
+                const profession = instructor.profession || instructor.title || '';
+                
+                // Get bio
+                const bio = instructor.bio || '';
+                
+                // Try to get valid instructor ID (number)
+                let instructorId: number | null = null;
+                if (typeof instructor.id === 'number') {
+                  instructorId = instructor.id;
+                } else if (typeof instructor.id === 'string') {
+                  // Try to parse if it's a string number
+                  const parsed = parseInt(instructor.id, 10);
+                  if (!isNaN(parsed) && parsed > 0) {
+                    instructorId = parsed;
+                  }
+                }
+                
+                const isValidId = instructorId !== null && instructorId > 0;
+                const containerClass = "rounded-xl border border-gray-200/60 dark:border-gray-800/60 p-4 hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors";
+                
+                const content = (
+                  <div className="flex items-start gap-4">
+                    <img 
+                      src={instructor.avatarUrl || `https://i.pravatar.cc/96?u=${instructor.userId || instructor.email || instructorName}`} 
+                      alt={instructorName} 
+                      className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+                    />
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900 dark:text-white">
+                        {instructorName}
+                      </div>
+                      {profession && (
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {profession}
+                        </div>
+                      )}
+                      {instructor.rating > 0 && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm font-medium">{instructor.rating.toFixed(1)}</span>
+                          </div>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                            ({instructor.totalReviews || 0} đánh giá)
+                          </span>
+                        </div>
+                      )}
+                      {bio && (
+                        <p className="mt-2 text-gray-700 dark:text-gray-300 text-sm line-clamp-2">
+                          {bio}
+                        </p>
+                      )}
+                      {(instructor.totalCourses > 0 || instructor.totalStudents > 0) && (
+                        <div className="flex items-center gap-4 mt-3 text-sm text-gray-600 dark:text-gray-400">
+                          {instructor.totalCourses > 0 && <span>{instructor.totalCourses} khóa học</span>}
+                          {instructor.totalCourses > 0 && instructor.totalStudents > 0 && <span>•</span>}
+                          {instructor.totalStudents > 0 && (
+                            <span>{instructor.totalStudents.toLocaleString('vi-VN')} học viên</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+                
+                if (isValidId && instructorId !== null) {
+                  return (
+                    <Link 
+                      to={`/instructor/${instructorId}`}
+                      className={`block ${containerClass} cursor-pointer`}
+                    >
+                      {content}
+                    </Link>
+                  );
+                }
+                
+                return (
+                  <div className={containerClass}>
+                    {content}
+                  </div>
+                );
+              })()}
             </div>
           )}
 
           {/* Other courses by instructor */}
-          {Array.isArray(anyCourse?.otherCoursesByInstructor) && anyCourse.otherCoursesByInstructor.length > 0 && (
+          {instructorCourses.length > 0 && course?.instructor && (
             <div className="mt-8">
-              <h2 className="text-xl font-semibold mb-3">Các khóa học khác của {anyCourse.instructor?.name || 'giảng viên'}</h2>
+              <h2 className="text-xl font-semibold mb-3">
+                Các khóa học khác của {course.instructor.fullName}
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {anyCourse.otherCoursesByInstructor.map((c: any) => (
-                  <Link to={`/course/${c.courseId}`} key={c.courseId} className="rounded-xl border border-gray-200/60 dark:border-gray-800/60 overflow-hidden hover:border-indigo-400 transition-colors">
-                    <img src={c.thumbnailUrl || `https://picsum.photos/seed/oc-${c.courseId}/600/338`} alt={c.title} className="w-full h-36 object-cover"/>
+                {instructorCourses.slice(0, 4).map((c: any) => (
+                  <Link 
+                    to={`/course/${c.id}`} 
+                    key={c.id} 
+                    className="rounded-xl border border-gray-200/60 dark:border-gray-800/60 overflow-hidden hover:border-indigo-400 transition-colors"
+                  >
+                    <img 
+                      src={c.thumbnailUrl || `https://picsum.photos/seed/oc-${c.id}/600/338`} 
+                      alt={c.title} 
+                      className="w-full h-36 object-cover"
+                    />
                     <div className="p-3">
-                      <div className="line-clamp-2 font-medium">{c.title}</div>
-                      <div className="mt-1 text-xs text-gray-500">{c.averageRating?.toFixed?.(1) ?? 'N/A'} ★</div>
+                      <div className="line-clamp-2 font-medium text-gray-900 dark:text-white">{c.title}</div>
+                      <div className="mt-1 text-sm text-indigo-600 dark:text-indigo-400 font-semibold">
+                        {new Intl.NumberFormat('vi-VN', {
+                          style: 'currency',
+                          currency: 'VND',
+                        }).format(c.finalPrice ?? c.price ?? 0)}
+                      </div>
                     </div>
                   </Link>
                 ))}
@@ -270,10 +497,25 @@ export default function CourseDetail() {
               ) : course.effectivePrice}
             </div>
             <p className="mt-1 text-xs text-gray-500">Bao gồm truy cập trọn đời • Học mọi lúc</p>
-            <button className="mt-3 w-full rounded-lg bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white py-2.5 font-semibold shadow hover:shadow-md transition-shadow">
-              {course.effectivePrice === 0 ? 'Đăng ký miễn phí' : 'Đăng ký ngay'}
+            {cartError && (
+              <div className="mt-2 p-2 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded">
+                {cartError}
+              </div>
+            )}
+            <button 
+              onClick={handleBuyNow}
+              disabled={addingToCart}
+              className="mt-3 w-full rounded-lg bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white py-2.5 font-semibold shadow hover:shadow-md transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {course.effectivePrice === 0 ? 'Đăng ký miễn phí' : 'Mua ngay'}
             </button>
-            <button className="mt-2 w-full rounded-lg border border-gray-300 dark:border-gray-800 py-2 text-sm hover:border-indigo-400 transition-colors">Thêm vào danh sách</button>
+            <button 
+              onClick={handleAddToCart}
+              disabled={addingToCart}
+              className="mt-2 w-full rounded-lg border border-gray-300 dark:border-gray-800 py-2 text-sm hover:border-indigo-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {addingToCart ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
+            </button>
             <ul className="mt-3 space-y-1 text-sm text-gray-600 dark:text-gray-400">
               <li>• Truy cập trên điện thoại & TV</li>
               <li>• Chứng chỉ hoàn thành</li>
@@ -305,54 +547,5 @@ export default function CourseDetail() {
   );
 }
 
-// Inject mock fields so UI sections are visible even if backend lacks them yet
-function enrichWithMock(c: CourseDetailDto): CourseDetailDto {
-  const anyC: any = { ...c };
-  anyC.relatedTopics = anyC.relatedTopics ?? [
-    'javascript', 'react', 'frontend', 'web-performance', 'ui-ux'
-  ];
-  anyC.requirements = anyC.requirements ?? [
-    'Máy tính kết nối internet',
-    'Kiến thức HTML/CSS cơ bản',
-    'Đã cài Node.js LTS'
-  ];
-  anyC.instructor = anyC.instructor ?? {
-    id: 'inst-001',
-    name: 'Nguyễn Minh Khoa',
-    title: 'Senior Frontend Engineer',
-    avatarUrl: '',
-    bio: '10+ năm kinh nghiệm phát triển web, giảng dạy React/TypeScript, tối ưu hiệu năng.'
-  };
-  anyC.otherCoursesByInstructor = anyC.otherCoursesByInstructor ?? [
-    { courseId: 'oc-1', title: 'TypeScript Cơ Bản đến Nâng Cao', thumbnailUrl: '', averageRating: 4.7 },
-    { courseId: 'oc-2', title: 'Next.js Thực Chiến', thumbnailUrl: '', averageRating: 4.6 },
-    { courseId: 'oc-3', title: 'Tối Ưu Hiệu Năng Web', thumbnailUrl: '', averageRating: 4.8 },
-    { courseId: 'oc-4', title: 'Testing React với Vitest/Jest', thumbnailUrl: '', averageRating: 4.5 },
-  ];
-  anyC.studentsAlsoBought = anyC.studentsAlsoBought ?? [
-    { courseId: 'ab-1', title: 'React Hooks & Patterns', thumbnailUrl: '', averageRating: 4.6 },
-    { courseId: 'ab-2', title: 'Tailwind CSS Từ A-Z', thumbnailUrl: '', averageRating: 4.7 },
-    { courseId: 'ab-3', title: 'Node.js API Best Practices', thumbnailUrl: '', averageRating: 4.5 },
-    { courseId: 'ab-4', title: 'Elasticsearch Cơ Bản', thumbnailUrl: '', averageRating: 4.4 },
-    { courseId: 'ab-5', title: 'Docker cho Developer', thumbnailUrl: '', averageRating: 4.6 },
-  ];
-  // Curriculum mock if lessons missing
-  anyC.lessons = Array.isArray(anyC.lessons) && anyC.lessons.length > 0 ? anyC.lessons : [
-    { lessonId: 'l1', orderIndex: 1, title: 'Giới thiệu khóa học & setup môi trường', durationSec: 420 },
-    { lessonId: 'l2', orderIndex: 2, title: 'Tổng quan React & Kiến trúc dự án', durationSec: 780 },
-    { lessonId: 'l3', orderIndex: 3, title: 'State & Props nâng cao', durationSec: 900 },
-    { lessonId: 'l4', orderIndex: 4, title: 'Routing & Code Splitting', durationSec: 660 },
-    { lessonId: 'l5', orderIndex: 5, title: 'Tối ưu hiệu năng & đo lường', durationSec: 840 },
-  ];
-  // Curriculum sections mock if missing
-  if (!Array.isArray((anyC as any).curriculum) || (anyC as any).curriculum.length === 0) {
-    (anyC as any).curriculum = [
-      { sectionId: 's1', title: 'Mở đầu', items: [ anyC.lessons[0], anyC.lessons[1] ] },
-      { sectionId: 's2', title: 'React cốt lõi', items: [ anyC.lessons[2] ] },
-      { sectionId: 's3', title: 'Routing & Tối ưu', items: [ anyC.lessons[3], anyC.lessons[4] ] },
-    ];
-  }
-  return anyC as CourseDetailDto;
-}
 
 

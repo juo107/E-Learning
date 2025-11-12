@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Elearn.Domain.Entities
@@ -17,3 +17,4 @@ namespace Elearn.Domain.Entities
         public ICollection<Course>? Courses { get; set; }
     }
 }
+

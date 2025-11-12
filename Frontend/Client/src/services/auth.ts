@@ -9,7 +9,8 @@ export type AuthResponse = {
 };
 
 export async function register(payload: { email: string; password: string; confirmPassword: string; fullName: string; role?: string }) {
-  const res = await api.post('/api/Auth/register', { role: 'User', ...payload });
+  const res = await api.post('/api/Auth/register', { role: 'Student', ...payload });
+  // BaseResponse structure: { data: AuthResponse, message: "...", success: true }
   return res.data?.data ?? (res.data as AuthResponse);
 }
 

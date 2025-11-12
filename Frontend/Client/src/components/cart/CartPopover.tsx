@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { ShoppingCart, X, Trash2, ArrowRight } from 'lucide-react';
 import { useCart } from '../../store/useCart';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../contexts/AuthContext';
+import { getCartItems, removeFromCart, type CartItemDto } from '../../services/cart';
+import toast from 'react-hot-toast';
 import type { Course } from '../../types/course';
 
 interface CartPopoverProps {
@@ -18,13 +21,65 @@ export default function CartPopover({ children }: CartPopoverProps) {
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { items, remove } = useCart();
+  const { isAuthenticated } = useAuth();
   const { t } = useTranslation();
+  const [backendCartItems, setBackendCartItems] = useState<CartItemDto[]>([]);
 
-  const cartItems = Object.values(items);
-  const totalItems = cartItems.reduce((sum, item) => sum + item.qty, 0);
+  // Load cart items from backend if authenticated
+  useEffect(() => {
+    const loadCart = async () => {
+      if (!isAuthenticated) {
+        setBackendCartItems([]);
+        return;
+      }
+      try {
+        const items = await getCartItems();
+        setBackendCartItems(items);
+      } catch (err) {
+        console.error('Failed to load cart:', err);
+        setBackendCartItems([]);
+      }
+    };
+    loadCart();
+    
+    // Reload when popover opens
+    if (isOpen) {
+      loadCart();
+    }
+  }, [isAuthenticated, isOpen]);
+
+  // Use backend cart items if available, otherwise use localStorage cart
+  const cartItems = isAuthenticated && backendCartItems.length > 0
+    ? backendCartItems.map(item => ({
+        course: {
+          courseId: parseInt(item.courseId) || 0,
+          id: item.courseId,
+          title: item.courseTitle,
+          thumbnailUrl: item.courseThumbnailUrl || undefined,
+          price: item.currentPrice,
+          discountPrice: item.currentPrice < item.priceAtAdd ? item.currentPrice : undefined,
+          slug: '',
+          shortDescription: '',
+          language: '',
+          averageRating: 0,
+          ratingCount: 0,
+          viewCount: 0,
+          enrollmentCount: 0,
+          isPublished: true,
+          isFeatured: false,
+          createdAt: item.addedAt,
+          updatedAt: item.addedAt,
+        } as unknown as Course,
+      }))
+    : Object.values(items).map(item => ({
+        course: item.course,
+      }));
+
+  // Count items (each course = 1, no quantity)
+  const totalItems = cartItems.length;
   const totalPrice = cartItems.reduce((sum, item) => {
     const price = (item.course as Course).discountPrice ?? (item.course as Course).price;
-    return sum + (price * item.qty);
+    return sum + price;
   }, 0);
 
   // Handle hover with smooth animation
@@ -54,13 +109,14 @@ export default function CartPopover({ children }: CartPopoverProps) {
       hoverTimeoutRef.current = null;
     }
     
-    // Start closing animation
-    setIsVisible(false);
-    
-    // Close after animation completes
+    // Start closing animation with longer delay to allow moving mouse to popover
     timeoutRef.current = setTimeout(() => {
-      setIsOpen(false);
-    }, 200); // Match animation duration
+      setIsVisible(false);
+      // Close after animation completes
+      setTimeout(() => {
+        setIsOpen(false);
+      }, 200);
+    }, 400); // Increased delay to allow moving mouse to popover
   };
 
   // Close popover when clicking outside
@@ -99,10 +155,24 @@ export default function CartPopover({ children }: CartPopoverProps) {
     };
   }, [isOpen]);
 
-  const handleRemove = (e: React.MouseEvent, courseId: number) => {
+  const handleRemove = async (e: React.MouseEvent, courseId: number | string) => {
     e.preventDefault();
     e.stopPropagation();
-    remove(courseId);
+    
+    if (isAuthenticated && backendCartItems.length > 0) {
+      try {
+        const cartItem = backendCartItems.find(item => item.courseId === courseId.toString());
+        if (cartItem) {
+          await removeFromCart(cartItem.id);
+          setBackendCartItems(prev => prev.filter(item => item.id !== cartItem.id));
+          toast.success('Đã xóa khỏi giỏ hàng');
+        }
+      } catch (err: any) {
+        toast.error(err?.message || 'Không thể xóa khỏi giỏ hàng');
+      }
+    } else {
+      remove(courseId as number);
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -129,24 +199,46 @@ export default function CartPopover({ children }: CartPopoverProps) {
         )}
       </div>
 
-      {/* Popover with smooth animation */}
+      {/* Invisible bridge area to prevent gap between icon and popover */}
       {isOpen && (
         <div
-          ref={popoverRef}
-          className={`absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[100] overflow-hidden transition-all duration-200 ease-out ${
-            isVisible 
-              ? 'opacity-100 translate-y-0 pointer-events-auto' 
-              : 'opacity-0 -translate-y-2 pointer-events-none'
-          }`}
+          className="absolute right-0 top-full w-80 sm:w-96 h-2 z-[99]"
           onMouseEnter={() => {
-            // Keep open when hovering over popover
             if (timeoutRef.current) {
               clearTimeout(timeoutRef.current);
               timeoutRef.current = null;
             }
             setIsVisible(true);
           }}
-          onMouseLeave={handleMouseLeave}
+        />
+      )}
+
+      {/* Popover with smooth animation */}
+      {isOpen && (
+        <div
+          ref={popoverRef}
+          className={`absolute right-0 top-full mt-0 w-80 sm:w-96 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-[100] overflow-hidden transition-all duration-200 ease-out ${
+            isVisible 
+              ? 'opacity-100 translate-y-0 pointer-events-auto' 
+              : 'opacity-0 -translate-y-2 pointer-events-none'
+          }`}
+          onMouseEnter={() => {
+            // Keep open when hovering over popover - clear any pending close
+            if (timeoutRef.current) {
+              clearTimeout(timeoutRef.current);
+              timeoutRef.current = null;
+            }
+            setIsVisible(true);
+          }}
+          onMouseLeave={() => {
+            // Delay closing when leaving popover
+            timeoutRef.current = setTimeout(() => {
+              setIsVisible(false);
+              setTimeout(() => {
+                setIsOpen(false);
+              }, 200);
+            }, 400); // Increased delay
+          }}
         >
           <div className="max-h-[500px] flex flex-col">
             {/* Header */}

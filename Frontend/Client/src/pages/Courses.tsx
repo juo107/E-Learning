@@ -385,7 +385,7 @@ export default function Courses() {
             <div className="loading-spinner" aria-label="Loading page" />
           </div>
         )}
-        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 ${pageLoading ? 'opacity-40' : 'animate-fade-in'}`} style={{ overflow: 'visible' }}>
+        <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ${pageLoading ? 'opacity-40' : 'animate-fade-in'}`} style={{ overflow: 'visible' }}>
         {visible.map((c) => {
           const isFeatured = c.averageRating >= 4.5;
           const isFree = c.effectivePrice === 0;
@@ -446,12 +446,12 @@ export default function Courses() {
               hoverTimeoutRef.current = null;
             }
             
-            // Delay closing to allow moving to hover card
+            // Delay closing to allow moving to hover card - tăng delay để user có thời gian di chuyển vào hover card
             hoverTimeoutRef.current = setTimeout(() => {
               setHoveredCourseId(null);
               setHoverPosition(null);
               hoverTimeoutRef.current = null;
-            }, 150);
+            }, 300); // Tăng từ 150ms lên 300ms
           };
 
           return (
@@ -462,49 +462,75 @@ export default function Courses() {
                 else courseCardRefs.current.delete(c.courseId);
               }}
               href={`/course/${c.courseId}`} 
-              className="rounded-xl bg-white dark:bg-gray-950 border border-gray-200/60 dark:border-gray-800/60 shadow-sm hover:shadow-lg transition-transform hover:-translate-y-0.5 block group"
+              className="rounded-xl bg-white dark:bg-gray-950 border border-gray-200/60 dark:border-gray-800/60 shadow-sm hover:shadow-2xl transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] block group overflow-hidden cursor-pointer"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
+              style={{ 
+                transformOrigin: 'center',
+                willChange: 'transform, box-shadow',
+                backfaceVisibility: 'hidden',
+                WebkitFontSmoothing: 'antialiased'
+              }}
             >
-            <div className="aspect-video w-full bg-gray-100 dark:bg-gray-800">
+            <div className="aspect-video w-full bg-gray-100 dark:bg-gray-800 overflow-hidden relative">
               <img
                 src={c.thumbnailUrl || `https://picsum.photos/seed/course-${c.courseId}/800/450`}
                 alt={c.title}
                 loading="lazy"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                style={{
+                  willChange: 'transform',
+                  backfaceVisibility: 'hidden'
+                }}
               />
+              {/* Overlay gradient on hover */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
             </div>
-            <div className="p-4">
+            <div className="p-4 relative">
             {(isFeatured || isFree || c.hasDiscount) && (
-              <div className="absolute top-2 left-2 flex gap-2">
-                {isFeatured && <span className="text-xs font-semibold bg-amber-400 text-black px-2 py-0.5 rounded">Featured</span>}
-                {isFree && <span className="text-xs font-semibold bg-emerald-500 text-white px-2 py-0.5 rounded">Free</span>}
+              <div className="absolute top-2 left-2 flex gap-2 z-10">
+                {isFeatured && (
+                  <span className="text-xs font-semibold bg-amber-400 text-black px-2 py-0.5 rounded shadow-md transform transition-transform duration-200 group-hover:scale-105">
+                    Featured
+                  </span>
+                )}
+                {isFree && (
+                  <span className="text-xs font-semibold bg-emerald-500 text-white px-2 py-0.5 rounded shadow-md transform transition-transform duration-200 group-hover:scale-105">
+                    Free
+                  </span>
+                )}
                 {c.hasDiscount && c.discountPercent && c.discountPercent > 0 && (
-                  <span className="text-xs font-semibold bg-red-500 text-white px-2 py-0.5 rounded">
+                  <span className="text-xs font-semibold bg-red-500 text-white px-2 py-0.5 rounded shadow-md transform transition-transform duration-200 group-hover:scale-105">
                     -{Math.round(c.discountPercent)}%
                   </span>
                 )}
               </div>
             )}
-            <h3 className="font-semibold line-clamp-2">{c.title}</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">{c.shortDescription}</p>
-            <div className="mt-2 text-sm">
-              <span className="font-semibold">{(c.averageRating || 0).toFixed(1)}</span>
-              <span className="ml-1 text-yellow-500">{'★'.repeat(Math.round(c.averageRating || 0))}</span>
-              <span className="ml-1 text-gray-500">({c.ratingCount})</span>
+            <h3 className="font-semibold line-clamp-2 transition-colors duration-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+              {c.title}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mt-1 transition-opacity duration-200 group-hover:opacity-80">
+              {c.shortDescription}
+            </p>
+            <div className="mt-2 text-sm flex items-center gap-1">
+              <span className="font-semibold text-yellow-600 dark:text-yellow-500">{(c.averageRating || 0).toFixed(1)}</span>
+              <span className="text-yellow-500">{'★'.repeat(Math.round(c.averageRating || 0))}</span>
+              <span className="text-gray-500 text-xs">({c.ratingCount})</span>
             </div>
-            <div className="mt-2 text-lg font-bold">
+            <div className="mt-2 text-lg font-bold transition-colors duration-200">
               {c.currency === 'VND' ? (
-                c.effectivePrice === 0 ? 'Miễn phí' : (
+                c.effectivePrice === 0 ? (
+                  <span className="text-emerald-600 dark:text-emerald-400">Miễn phí</span>
+                ) : (
                   <div className="flex items-center gap-2 flex-wrap">
                     {/* Hiển thị giá gốc với line-through nếu có discount */}
                     {c.hasDiscount && c.discountPercent && c.discountPercent > 0 && c.price && c.finalPrice && c.price > c.finalPrice && (
-                      <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 line-through transition-opacity duration-200 group-hover:opacity-70">
                         {c.price.toLocaleString('vi-VN')} ₫
                       </span>
                     )}
                     {/* Hiển thị giá đã giảm hoặc giá gốc */}
-                    <span className={`${c.hasDiscount && c.finalPrice ? 'text-red-600 dark:text-red-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
+                    <span className={`transition-colors duration-200 ${c.hasDiscount && c.finalPrice ? 'text-red-600 dark:text-red-400 group-hover:text-red-700 dark:group-hover:text-red-300' : 'text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300'}`}>
                       {(c.finalPrice ?? c.price ?? c.effectivePrice).toLocaleString('vi-VN')} ₫
                     </span>
                   </div>
@@ -516,18 +542,36 @@ export default function Courses() {
           
           {/* Hover Card - Fixed positioning */}
           {isHovered && hoverPosition && (
-            <CourseHoverCard
-              course={c}
-              isVisible={true}
-              position={hoverPosition}
-              onClose={() => {
+            <div
+              onMouseEnter={() => {
+                // Clear timeout khi mouse vào hover card
                 if (hoverTimeoutRef.current) {
                   clearTimeout(hoverTimeoutRef.current);
+                  hoverTimeoutRef.current = null;
                 }
-                setHoveredCourseId(null);
-                setHoverPosition(null);
               }}
-            />
+              onMouseLeave={() => {
+                // Delay đóng khi mouse rời khỏi hover card
+                hoverTimeoutRef.current = setTimeout(() => {
+                  setHoveredCourseId(null);
+                  setHoverPosition(null);
+                  hoverTimeoutRef.current = null;
+                }, 300);
+              }}
+            >
+              <CourseHoverCard
+                course={c}
+                isVisible={true}
+                position={hoverPosition}
+                onClose={() => {
+                  if (hoverTimeoutRef.current) {
+                    clearTimeout(hoverTimeoutRef.current);
+                  }
+                  setHoveredCourseId(null);
+                  setHoverPosition(null);
+                }}
+              />
+            </div>
           )}
           </div>
           );

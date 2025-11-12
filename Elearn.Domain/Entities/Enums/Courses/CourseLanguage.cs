@@ -7,4 +7,3 @@ namespace Elearn.Domain.Entities.Enums
     }
 }
 
-

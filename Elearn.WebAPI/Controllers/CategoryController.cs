@@ -166,5 +166,15 @@ namespace Elearn.WebAPI.Controllers
             return HandleResponse(result);
         }
         #endregion
+
+        #region GetRootCategories (for Mega Menu)
+        [HttpGet("root")]
+        [ProducesResponseType(typeof(BaseResponse<IEnumerable<CategoryDto>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetRootCategories()
+        {
+            var result = await _categoryService.GetRootCategoriesAsync();
+            return HandleResponse(result);
+        }
+        #endregion
     }
 }

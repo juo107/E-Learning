@@ -38,6 +38,8 @@ import Terms from '../pages/legal/Terms';
 import Privacy from '../pages/legal/Privacy';
 import Cookies from '../pages/legal/Cookies';
 import Cart from '../pages/Cart';
+import Checkout from '../pages/Checkout';
+import InstructorProfile from '../pages/InstructorProfile';
 
 export const router = createBrowserRouter([
   // Maintenance standalone (không Header/Footer)
@@ -48,7 +50,16 @@ export const router = createBrowserRouter([
       { path: '/', element: <Home /> },
       { path: '/courses', element: <Courses /> },
       { path: '/course/:id', element: <CourseDetail /> },
+      { path: '/instructor/:id', element: <InstructorProfile /> },
       { path: '/cart', element: <Cart /> },
+      { 
+        path: '/checkout', 
+        element: (
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>
+        ) 
+      },
       { 
         path: '/dashboard', 
         element: (

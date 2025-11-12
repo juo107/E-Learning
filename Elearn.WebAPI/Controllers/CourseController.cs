@@ -149,5 +149,18 @@ namespace Elearn.WebAPI.Controllers
             return HandleResponse(result);
         }
         #endregion
+
+        #region Admin - Assign Instructors
+        /// <summary>
+        /// Gán instructor cho các courses chưa có instructor (Admin only)
+        /// </summary>
+        [HttpPost("admin/assign-instructors")]
+        [ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> AssignInstructorsToCourses()
+        {
+            var result = await _courseService.AssignInstructorsToCoursesAsync();
+            return HandleResponse(result);
+        }
+        #endregion
     }
 }

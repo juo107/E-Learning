@@ -8,3 +8,4 @@ namespace Elearn.Domain.Entities.Enums
         Archived = 4
     }
 }
+

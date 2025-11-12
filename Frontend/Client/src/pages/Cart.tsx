@@ -1,25 +1,91 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Trash2, ArrowLeft, X, Plus, Minus } from 'lucide-react';
+import { ShoppingCart, Trash2, ArrowLeft } from 'lucide-react';
 import { useCart } from '../store/useCart';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
+import { getCartItems, removeFromCart, clearCart, type CartItemDto } from '../services/cart';
+import toast from 'react-hot-toast';
 import type { Course } from '../types/course';
 
 export default function Cart() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { items, remove, clear, update } = useCart();
+  const { isAuthenticated } = useAuth();
+  const { items, remove, clear } = useCart();
+  const [backendCartItems, setBackendCartItems] = useState<CartItemDto[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const cartItems = Object.values(items);
-  const totalItems = cartItems.reduce((sum, item) => sum + item.qty, 0);
+  // Load cart items from backend if authenticated
+  useEffect(() => {
+    const loadCart = async () => {
+      if (!isAuthenticated) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const backendItems = await getCartItems();
+        setBackendCartItems(backendItems);
+      } catch (err: any) {
+        console.error('Failed to load cart from backend:', err);
+        // Continue with localStorage cart if backend fails
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCart();
+  }, [isAuthenticated]);
+
+  // Use backend cart items if available, otherwise use localStorage cart
+  const cartItems = isAuthenticated && backendCartItems.length > 0
+    ? backendCartItems.map(item => ({
+        course: {
+          courseId: parseInt(item.courseId) || 0,
+          id: item.courseId,
+          title: item.courseTitle,
+          thumbnailUrl: item.courseThumbnailUrl || undefined,
+          price: item.currentPrice,
+          discountPrice: item.currentPrice < item.priceAtAdd ? item.currentPrice : undefined,
+          slug: '',
+          shortDescription: '',
+          language: '',
+          averageRating: 0,
+          ratingCount: 0,
+          viewCount: 0,
+          enrollmentCount: 0,
+          isPublished: true,
+          isFeatured: false,
+          createdAt: item.addedAt,
+          updatedAt: item.addedAt,
+          // Legacy fields
+          totalRatings: 0,
+          totalStudents: 0,
+          instructorName: '',
+          instructorId: '',
+          categoryId: undefined,
+          categoryName: '',
+          level: '',
+          duration: 0,
+          lessonsCount: 0,
+        } as unknown as Course,
+      }))
+    : Object.values(items).map(item => ({
+        course: item.course,
+      }));
+
+  const totalItems = cartItems.length;
   
   const subtotal = cartItems.reduce((sum, item) => {
     const price = (item.course as Course).discountPrice ?? (item.course as Course).price;
-    return sum + (price * item.qty);
+    return sum + price;
   }, 0);
 
-  const tax = subtotal * 0.1; // 10% tax (có thể điều chỉnh)
-  const total = subtotal + tax;
+  // No tax for now, or can be added later
+  const discount = 0; // Can add coupon discount later
+  const total = subtotal - discount;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -28,19 +94,76 @@ export default function Cart() {
     }).format(price);
   };
 
-  const handleUpdateQuantity = (courseId: number, newQty: number) => {
-    update(courseId, newQty);
+  const handleRemove = async (courseId: number | string) => {
+    if (isAuthenticated && backendCartItems.length > 0) {
+      try {
+        const cartItem = backendCartItems.find(item => item.courseId === courseId.toString());
+        if (cartItem) {
+          await removeFromCart(cartItem.id);
+          setBackendCartItems(prev => prev.filter(item => item.id !== cartItem.id));
+          toast.success('Đã xóa khỏi giỏ hàng');
+        }
+      } catch (err: any) {
+        toast.error(err?.message || 'Không thể xóa khỏi giỏ hàng');
+      }
+    } else {
+      remove(courseId as number);
+    }
   };
 
-  const handleRemove = (courseId: number) => {
-    remove(courseId);
-  };
+  const handleClearCart = async () => {
+    if (!window.confirm(t('cart.confirmClear'))) {
+      return;
+    }
 
-  const handleClearCart = () => {
-    if (window.confirm(t('cart.confirmClear'))) {
+    if (isAuthenticated && backendCartItems.length > 0) {
+      try {
+        await clearCart();
+        setBackendCartItems([]);
+        toast.success('Đã xóa tất cả khỏi giỏ hàng');
+      } catch (err: any) {
+        toast.error(err?.message || 'Không thể xóa giỏ hàng');
+      }
+    } else {
       clear();
     }
   };
+
+  const handleCheckout = () => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: '/cart' } });
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      toast.error('Giỏ hàng trống');
+      return;
+    }
+
+    // Lấy course IDs từ cart items
+    const courseIds = cartItems.map(item => {
+      const course = item.course as Course;
+      return course.courseId?.toString() ?? '0';
+    }).filter(id => id !== '0');
+
+    // Redirect đến trang checkout
+    navigate('/checkout', {
+      state: {
+        courseIds,
+        fromCart: true, // Flag để biết là từ cart
+      },
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="loading-spinner" />
+        </div>
+      </div>
+    );
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -148,38 +271,14 @@ export default function Cart() {
                           </div>
                         </div>
 
-                        {/* Actions */}
-                        <div className="flex items-center gap-4">
-                          {/* Quantity */}
-                          <div className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <button
-                              onClick={() => handleUpdateQuantity(courseId, item.qty - 1)}
-                              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
-                              aria-label={t('cart.decreaseQuantity')}
-                            >
-                              <Minus className="w-4 h-4" />
-                            </button>
-                            <span className="px-3 py-1 text-sm font-medium text-gray-900 dark:text-white min-w-[3rem] text-center">
-                              {item.qty}
-                            </span>
-                            <button
-                              onClick={() => handleUpdateQuantity(courseId, item.qty + 1)}
-                              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
-                              aria-label={t('cart.increaseQuantity')}
-                            >
-                              <Plus className="w-4 h-4" />
-                            </button>
-                          </div>
-
-                          {/* Remove */}
-                          <button
-                            onClick={() => handleRemove(courseId)}
-                            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                            aria-label={t('cart.remove')}
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
+                        {/* Remove Button */}
+                        <button
+                          onClick={() => handleRemove(courseId)}
+                          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          aria-label={t('cart.remove')}
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -201,10 +300,12 @@ export default function Cart() {
                 <span>{t('cart.subtotal')}</span>
                 <span>{formatPrice(subtotal)}</span>
               </div>
-              <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                <span>{t('cart.tax')}</span>
-                <span>{formatPrice(tax)}</span>
-              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-green-600 dark:text-green-400">
+                  <span>Giảm giá</span>
+                  <span>-{formatPrice(discount)}</span>
+                </div>
+              )}
               <div className="border-t border-gray-200 dark:border-gray-700 pt-4 flex justify-between text-lg font-bold text-gray-900 dark:text-white">
                 <span>{t('cart.total')}</span>
                 <span className="text-indigo-600 dark:text-indigo-400">
@@ -213,12 +314,16 @@ export default function Cart() {
               </div>
             </div>
 
+            {!isAuthenticated && (
+              <div className="mb-4 p-3 text-sm text-amber-600 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                Vui lòng đăng nhập để thanh toán
+              </div>
+            )}
+
             <button
-              onClick={() => {
-                // Handle checkout
-                alert(t('cart.checkoutMessage'));
-              }}
-              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors mb-4"
+              onClick={handleCheckout}
+              disabled={!isAuthenticated || cartItems.length === 0}
+              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors mb-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {t('cart.checkout')}
             </button>

@@ -14,6 +14,11 @@ namespace Elearn.Application
             services.AddScoped<ICourseMediaService, CourseMediaService>();
             services.AddScoped<IPromotionService, PromotionService>();
             services.AddScoped<IAuthService, Elearn.Application.Services.Implementations.AuthService>();
+            services.AddScoped<IVNPayService, Elearn.Application.Services.Implementations.VNPay.VNPayService>();
+            services.AddScoped<IPaymentService, Elearn.Application.Services.Implementations.Payment.PaymentService>();
+            services.AddScoped<ICartService, Elearn.Application.Services.Implementations.Cart.CartService>();
+            services.AddScoped<IOrderService, Elearn.Application.Services.Implementations.Order.OrderService>();
+            services.AddScoped<IInstructorService, Elearn.Application.Services.Implementations.Instructor.InstructorService>();
             
             // Đăng ký validators
             services.AddValidators();

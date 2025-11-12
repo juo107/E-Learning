@@ -248,5 +248,17 @@ namespace Elearn.Infrastructure.Repository.Implementations
 
             return (items, totalCount);
         }
+
+        /// <summary>
+        /// Lấy courses theo instructor profile ID
+        /// </summary>
+        public async Task<IEnumerable<Course>> GetCoursesByInstructorIdAsync(int instructorProfileId)
+        {
+            return await _context.Courses
+                .Where(c => !c.IsDeleted && c.InstructorProfileId == instructorProfileId)
+                .Include(c => c.Category)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+        }
     }
 }

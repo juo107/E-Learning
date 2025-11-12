@@ -12,6 +12,12 @@ namespace Elearn.Infrastructure.Repository
         public ICategoryRepository Categories { get; }
         public ICourseMediaRepository CourseMedias { get; }
         public IPromotionRepository Promotions { get; }
+        public IOrderRepository Orders { get; }
+        public IPaymentRepository Payments { get; }
+        public IUserCourseRepository UserCourses { get; }
+        public ICartItemRepository CartItems { get; }
+        public IBlacklistedTokenRepository BlacklistedTokens { get; }
+        public IInstructorProfileRepository InstructorProfiles { get; }
 
         public UnitOfWork(ElearnDbContext context)
         {
@@ -20,6 +26,12 @@ namespace Elearn.Infrastructure.Repository
             Categories = new CategoryRepository(_context);
             CourseMedias = new CourseMediaRepository(_context);
             Promotions = new PromotionRepository(_context);
+            Orders = new OrderRepository(_context);
+            Payments = new PaymentRepository(_context);
+            UserCourses = new UserCourseRepository(_context);
+            CartItems = new CartItemRepository(_context);
+            BlacklistedTokens = new BlacklistedTokenRepository(_context);
+            InstructorProfiles = new InstructorProfileRepository(_context);
         }
 
         public async Task<int> CompleteAsync()

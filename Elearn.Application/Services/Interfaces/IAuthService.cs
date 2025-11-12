@@ -6,6 +6,8 @@ namespace Elearn.Application.Services.Interfaces
     {
         Task<AuthResponseDto> RegisterAsync(RegisterDto registerDto);
         Task<AuthResponseDto> LoginAsync(LoginDto loginDto);
+        Task<UserDto> GetCurrentUserAsync(string userId);
+        Task<bool> ChangePasswordAsync(string userId, ChangePasswordDto changePasswordDto);
     }
 }
 

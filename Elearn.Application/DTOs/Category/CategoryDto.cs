@@ -10,5 +10,9 @@
         public string? ParentCategoryName { get; set; }
         public int SubCategoriesCount { get; set; }
         public int CoursesCount { get; set; }
+        /// <summary>
+        /// SubCategories for mega menu (only populated when needed)
+        /// </summary>
+        public List<CategoryDto>? SubCategories { get; set; }
     }
 }

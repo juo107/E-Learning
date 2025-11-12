@@ -9,7 +9,9 @@ export type CategoryItem = {
 
 export async function fetchCategories(): Promise<CategoryItem[]> {
   try {
-    const res = await api.get('/api/category'); // Use original API endpoint
+    // Use root categories endpoint which is optimized with Redis cache for mega menu
+    // This endpoint returns root categories with subcategories already included
+    const res = await api.get('/api/category/root');
     const raw = res.data;
     
     // Handle different response formats
@@ -22,75 +24,19 @@ export async function fetchCategories(): Promise<CategoryItem[]> {
       categoriesData = [];
     }
 
-    // Group categories by parent to create hierarchical structure
-    const parentCategories = new Map<string, CategoryItem>();
-    const subcategories: any[] = [];
-
-    // First pass: separate parent categories and subcategories
-    categoriesData.forEach((category: any) => {
-      // Only process categories with valid IDs
-      if (!category.id || typeof category.id !== 'string') {
-        return; // Skip invalid categories
-      }
-      
-      if (category.parentCategoryId) {
-        // This is a subcategory
-        subcategories.push(category);
-      } else {
-        // This is a parent category
-        parentCategories.set(category.id, {
-          id: category.id,
-          name: category.name,
-          slug: category.name?.toLowerCase().replace(/\s+/g, '-'),
-          subcategories: []
-        });
-      }
-    });
-
-    // If no parent categories found, create them from subcategories
-    if (parentCategories.size === 0) {
-      // Group subcategories by their parentCategoryId
-      const parentGroups = new Map<string, any[]>();
-      subcategories.forEach((sub: any) => {
-        const parentId = sub.parentCategoryId;
-        if (!parentGroups.has(parentId)) {
-          parentGroups.set(parentId, []);
-        }
-        parentGroups.get(parentId)!.push(sub);
-      });
-
-      // Create parent categories from groups
-      parentGroups.forEach((subs, parentId) => {
-        // Use the first subcategory to get parent info
-        const firstSub = subs[0];
-        const parentName = firstSub.parentCategoryName || `Category ${parentId.substring(0, 8)}`;
-        
-        parentCategories.set(parentId, {
-          id: parentId,
-          name: parentName,
-          slug: parentName?.toLowerCase().replace(/\s+/g, '-'),
-          subcategories: []
-        });
-      });
-    }
-
-    // Second pass: add subcategories to their parent categories
-    subcategories.forEach((subcategory: any) => {
-      const parentId = subcategory.parentCategoryId;
-      
-      // Only add to parent if it exists in our map (real categories from database)
-      if (parentCategories.has(parentId)) {
-        const parent = parentCategories.get(parentId)!;
-        parent.subcategories!.push({
-          id: subcategory.id,
-          name: subcategory.name,
-          slug: subcategory.name?.toLowerCase().replace(/\s+/g, '-')
-        });
-      }
-    });
-
-    // Convert Map to Array
-    return Array.from(parentCategories.values());
+    // Map root categories with their subcategories (already included from backend)
+    return categoriesData
+      .filter((category: any) => category.id && typeof category.id === 'string')
+      .map((category: any) => ({
+        id: category.id,
+        name: category.name,
+        slug: category.name?.toLowerCase().replace(/\s+/g, '-'),
+        subcategories: (category.subCategories || category.subcategories || []).map((sub: any) => ({
+          id: sub.id,
+          name: sub.name,
+          slug: sub.name?.toLowerCase().replace(/\s+/g, '-')
+        }))
+      }));
   } catch (error) {
     console.error('Failed to fetch categories:', error);
     return []; // Return empty array instead of fallback

@@ -3,6 +3,7 @@ using Elearn.Application.Validations;
 using Elearn.Infrastructure;
 using Elearn.Infrastructure.Data;
 using Elearn.Search;
+using Elearn.WebAPI.Middleware;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -133,6 +134,10 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(Elearn.Application.Mapping.MappingProfile));
 
+// Configure VNPay
+builder.Services.Configure<Elearn.Application.Configurations.VNPayConfiguration>(
+    builder.Configuration.GetSection(Elearn.Application.Configurations.VNPayConfiguration.SectionName));
+
 // Add Search Layer (Elasticsearch)
 builder.Services.AddSearch(builder.Configuration);
 
@@ -153,6 +158,8 @@ app.UseCors("AllowFrontend");
 app.UseMiddleware<Elearn.WebAPI.Middlewares.GlobalExceptionMiddleware>();
 
 app.UseAuthentication();
+// Check token blacklist before authorization
+app.UseTokenBlacklist();
 app.UseAuthorization();
 app.MapControllers();
 

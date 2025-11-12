@@ -4,6 +4,7 @@ using Elearn.Application.DTOs.Course;
 using Elearn.Application.DTOs.Category;
 using Elearn.Application.DTOs.CourseMedia;
 using Elearn.Application.DTOs.Promotion;
+using Elearn.Application.DTOs.Payment;
 
 namespace Elearn.Application.Mapping
 {
@@ -78,7 +79,8 @@ namespace Elearn.Application.Mapping
             CreateMap<Category, CategoryDto>()
                 .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategory != null ? src.ParentCategory.Name : null))
                 .ForMember(dest => dest.SubCategoriesCount, opt => opt.MapFrom(src => src.SubCategories != null ? src.SubCategories.Count : 0))
-                .ForMember(dest => dest.CoursesCount, opt => opt.MapFrom(src => src.Courses != null ? src.Courses.Count : 0));
+                .ForMember(dest => dest.CoursesCount, opt => opt.MapFrom(src => src.Courses != null ? src.Courses.Count : 0))
+                .ForMember(dest => dest.SubCategories, opt => opt.MapFrom(src => src.SubCategories != null && src.SubCategories.Any() ? src.SubCategories : null));
                 
             CreateMap<Category, CategoryDetailsDto>()
                 .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategory != null ? src.ParentCategory.Name : null))
@@ -160,6 +162,11 @@ namespace Elearn.Application.Mapping
                 .ForMember(dest => dest.Category, opt => opt.Ignore())
                 .ForMember(dest => dest.PromotionCourses, opt => opt.Ignore())
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+            // Payment mappings
+            CreateMap<Domain.Entities.Payment, PaymentResponseDto>()
+                .ForMember(dest => dest.OrderCode, opt => opt.Ignore()) // Sẽ được set manually
+                .ForMember(dest => dest.PaymentUrl, opt => opt.Ignore()); // Sẽ được set manually
         }
     }
 }

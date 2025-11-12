@@ -19,5 +19,6 @@ namespace Elearn.Application.Services.Interfaces
         Task<BaseResponse<bool>> IndexAllCoursesAsync();
         Task<bool> CourseExistsAsync(Guid id);
         Task<bool> CourseCodeExistsAsync(string courseCode);
+        Task<BaseResponse<string>> AssignInstructorsToCoursesAsync();
     }
 }

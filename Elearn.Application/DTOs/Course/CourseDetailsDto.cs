@@ -1,4 +1,5 @@
 using Elearn.Domain.Entities.Enums;
+using Elearn.Application.DTOs.Instructor;
 
 namespace Elearn.Application.DTOs.Course
 {
@@ -29,5 +30,8 @@ namespace Elearn.Application.DTOs.Course
         public string? ThumbnailUrl { get; set; }
         public string? PrimaryImageUrl { get; set; }
         public string? PromoVideoUrl { get; set; }
+        
+        // Instructor information
+        public InstructorDto? Instructor { get; set; }
     }
 }
