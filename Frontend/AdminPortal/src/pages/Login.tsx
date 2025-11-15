@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { LogIn, AlertCircle, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 interface LoginForm {
   email: string;
@@ -8,7 +7,6 @@ interface LoginForm {
 }
 
 export default function Login() {
-  const navigate = useNavigate();
   const [form, setForm] = useState<LoginForm>({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -56,7 +54,8 @@ export default function Login() {
         fullName: data.data?.fullName || data.fullName,
       }));
 
-      navigate('/dashboard');
+      // Force reload to update App.tsx authentication state
+      window.location.href = '/dashboard';
     } catch (err: any) {
       setError(err.message || 'An error occurred during login');
     } finally {
@@ -65,8 +64,18 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full px-4 py-10 flex items-center justify-center bg-gradient-to-br from-indigo-50 to-white dark:from-gray-900 dark:to-gray-950">
-      <div className="w-full max-w-md">
+    <>
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            <p className="text-gray-700 dark:text-gray-300 font-medium">Signing in...</p>
+          </div>
+        </div>
+      )}
+      <div className="min-h-screen w-full px-4 py-10 flex items-center justify-center bg-gradient-to-br from-indigo-50 to-white dark:from-gray-900 dark:to-gray-950">
+        <div className="w-full max-w-md">
         <div className="mb-6 text-center">
           <div className="inline-block text-2xl font-extrabold bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent mb-1">
             E-Learning Admin Portal
@@ -176,7 +185,8 @@ export default function Login() {
             </div>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

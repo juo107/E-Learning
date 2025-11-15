@@ -48,8 +48,8 @@ namespace Elearn.Application.Services.Implementations
                     parameters = new QueryParameters();
                 }
 
-                // Create cache key based on parameters (including OnlyPublished and IncludeDeleted to separate cache)
-                var cacheKey = $"courses:list:{parameters.PageNumber}:{parameters.PageSize}:{parameters.Keyword}:{parameters.CategoryId}:{parameters.MinPrice}:{parameters.MaxPrice}:{parameters.SortBy}:{parameters.IsDescending}:published:{parameters.OnlyPublished}:deleted:{parameters.IncludeDeleted}";
+                // Create cache key based on parameters (including OnlyPublished, OnlyDraft and IncludeDeleted to separate cache)
+                var cacheKey = $"courses:list:{parameters.PageNumber}:{parameters.PageSize}:{parameters.Keyword}:{parameters.CategoryId}:{parameters.MinPrice}:{parameters.MaxPrice}:{parameters.SortBy}:{parameters.IsDescending}:published:{parameters.OnlyPublished}:draft:{parameters.OnlyDraft}:deleted:{parameters.IncludeDeleted}:level:{parameters.Level}:language:{parameters.Language}";
                 
                 // Try to get from cache first
                 var cachedCourses = await _cache.GetAsync<IEnumerable<CourseDto>>(cacheKey);
@@ -73,7 +73,10 @@ namespace Elearn.Application.Services.Implementations
                     parameters.SortBy,
                     parameters.IsDescending,
                     parameters.OnlyPublished,
-                    parameters.IncludeDeleted);
+                    parameters.OnlyDraft,
+                    parameters.IncludeDeleted,
+                    parameters.Level,
+                    parameters.Language);
 
                 var courseDtos = _mapper.Map<IEnumerable<CourseDto>>(items);
                 
@@ -214,18 +217,22 @@ namespace Elearn.Application.Services.Implementations
                 await _unitOfWork.Courses.AddAsync(course);
                 await _unitOfWork.CompleteAsync();
 
-                // Index to Elasticsearch
-                var searchDoc = new CourseSearchDocument
+                // Index to Elasticsearch only if published
+                if (course.IsPublished)
                 {
-                    Id = course.Id.ToString(),
-                    CourseCode = course.CourseCode,
-                    Title = course.Title,
-                    Description = course.Description,
-                    Price = course.Price,
-                    DurationInMinutes = course.DurationInMinutes,
-                    CategoryId = course.CategoryId?.ToString()
-                };
-                await _courseSearchRepository.IndexAsync(searchDoc);
+                    var searchDoc = new CourseSearchDocument
+                    {
+                        Id = course.Id.ToString(),
+                        CourseCode = course.CourseCode,
+                        Title = course.Title,
+                        Description = course.Description,
+                        Price = course.Price,
+                        DurationInMinutes = course.DurationInMinutes,
+                        CategoryId = course.CategoryId?.ToString(),
+                        IsPublished = course.IsPublished
+                    };
+                    await _courseSearchRepository.IndexAsync(searchDoc);
+                }
 
                 // Invalidate cache
                 await _cache.RemoveByPatternAsync("course:*");
@@ -300,18 +307,27 @@ namespace Elearn.Application.Services.Implementations
                 _unitOfWork.Courses.Update(existing);
                 await _unitOfWork.CompleteAsync();
 
-                // Re-index updated document
-                var searchDoc = new CourseSearchDocument
+                // Re-index updated document only if published, otherwise remove from index
+                if (existing.IsPublished)
                 {
-                    Id = existing.Id.ToString(),
-                    CourseCode = existing.CourseCode,
-                    Title = existing.Title,
-                    Description = existing.Description,
-                    Price = existing.Price,
-                    DurationInMinutes = existing.DurationInMinutes,
-                    CategoryId = existing.CategoryId?.ToString()
-                };
-                await _courseSearchRepository.IndexAsync(searchDoc);
+                    var searchDoc = new CourseSearchDocument
+                    {
+                        Id = existing.Id.ToString(),
+                        CourseCode = existing.CourseCode,
+                        Title = existing.Title,
+                        Description = existing.Description,
+                        Price = existing.Price,
+                        DurationInMinutes = existing.DurationInMinutes,
+                        CategoryId = existing.CategoryId?.ToString(),
+                        IsPublished = existing.IsPublished
+                    };
+                    await _courseSearchRepository.IndexAsync(searchDoc);
+                }
+                else
+                {
+                    // Remove from index if unpublished
+                    await _courseSearchRepository.DeleteAsync(existing.Id.ToString());
+                }
 
                 // Invalidate cache
                 await _cache.RemoveAsync($"course:{existing.Id}");
@@ -536,20 +552,30 @@ namespace Elearn.Application.Services.Implementations
                 var courses = await _readUnitOfWork.Courses.GetAllAsync();
                 var courseDtos = _mapper.Map<IEnumerable<CourseDto>>(courses);
 
+                int indexedCount = 0;
                 foreach (var course in courseDtos)
                 {
-                    var searchDocument = new Elearn.Search.Models.CourseSearchDocument
+                    // Only index published courses
+                    if (course.IsPublished)
                     {
-                        Id = course.Id.ToString(),
-                        Title = course.Title,
-                        Description = course.Description,
-                        CourseCode = course.CourseCode
-                    };
+                        var searchDocument = new Elearn.Search.Models.CourseSearchDocument
+                        {
+                            Id = course.Id.ToString(),
+                            Title = course.Title,
+                            Description = course.Description,
+                            CourseCode = course.CourseCode,
+                            Price = course.Price,
+                            DurationInMinutes = course.DurationInMinutes,
+                            CategoryId = course.CategoryId?.ToString(),
+                            IsPublished = course.IsPublished
+                        };
 
-                    await _courseSearchRepository.IndexAsync(searchDocument);
+                        await _courseSearchRepository.IndexAsync(searchDocument);
+                        indexedCount++;
+                    }
                 }
 
-                return BaseResponse<bool>.Ok(true, $"Successfully indexed {courseDtos.Count()} courses");
+                return BaseResponse<bool>.Ok(true, $"Successfully indexed {indexedCount} published courses out of {courseDtos.Count()} total courses");
             }
             catch (Exception ex)
             {

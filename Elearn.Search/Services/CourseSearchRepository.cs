@@ -6,8 +6,8 @@ namespace Elearn.Search.Services
     {
         Task IndexAsync(CourseSearchDocument doc, CancellationToken cancellationToken = default);
         Task<bool> DeleteAsync(string id, CancellationToken cancellationToken = default);
-        Task<IEnumerable<CourseSearchDocument>> SearchAsync(string keyword, int size = 20, CancellationToken cancellationToken = default);
-        Task<IEnumerable<string>> AutocompleteAsync(string prefix, int size = 10, CancellationToken cancellationToken = default);
+        Task<IEnumerable<CourseSearchDocument>> SearchAsync(string keyword, int size = 20, bool onlyPublished = true, CancellationToken cancellationToken = default);
+        Task<IEnumerable<string>> AutocompleteAsync(string prefix, int size = 10, bool onlyPublished = true, CancellationToken cancellationToken = default);
     }
 
     public class CourseSearchRepository : ICourseSearchRepository
@@ -38,15 +38,15 @@ namespace Elearn.Search.Services
             }
         }
 
-        public async Task<IEnumerable<CourseSearchDocument>> SearchAsync(string keyword, int size = 20, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<CourseSearchDocument>> SearchAsync(string keyword, int size = 20, bool onlyPublished = true, CancellationToken cancellationToken = default)
         {
-            var results = await _searchService.SearchAsync<CourseSearchDocument>(keyword, IndexName);
+            var results = await _searchService.SearchAsync<CourseSearchDocument>(keyword, IndexName, onlyPublished);
             return results.Take(size);
         }
 
-        public async Task<IEnumerable<string>> AutocompleteAsync(string prefix, int size = 10, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<string>> AutocompleteAsync(string prefix, int size = 10, bool onlyPublished = true, CancellationToken cancellationToken = default)
         {
-            return await _searchService.AutocompleteAsync(prefix, IndexName, size, cancellationToken);
+            return await _searchService.AutocompleteAsync(prefix, IndexName, size, onlyPublished, cancellationToken);
         }
     }
 }

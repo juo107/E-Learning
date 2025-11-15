@@ -173,7 +173,10 @@ namespace Elearn.Infrastructure.Repository.Implementations
             string? sortBy = null,
             bool isDescending = true,
             bool onlyPublished = false,
-            bool includeDeleted = false)
+            bool onlyDraft = false,
+            bool includeDeleted = false,
+            int? level = null,
+            int? language = null)
         {
             var query = _read.Courses
                 .Include(c => c.Category)
@@ -193,6 +196,10 @@ namespace Elearn.Infrastructure.Repository.Implementations
             if (onlyPublished)
             {
                 query = query.Where(c => c.IsPublished);
+            }
+            else if (onlyDraft)
+            {
+                query = query.Where(c => !c.IsPublished);
             }
 
             if (!string.IsNullOrWhiteSpace(keyword))
@@ -237,6 +244,16 @@ namespace Elearn.Infrastructure.Repository.Implementations
             if (createdTo.HasValue)
             {
                 query = query.Where(c => c.CreatedAt <= createdTo.Value);
+            }
+
+            if (level.HasValue)
+            {
+                query = query.Where(c => (int)c.Level == level.Value);
+            }
+
+            if (language.HasValue)
+            {
+                query = query.Where(c => (int)c.Language == language.Value);
             }
 
             query = (sortBy?.ToLower()) switch

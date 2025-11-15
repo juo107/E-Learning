@@ -19,6 +19,8 @@ namespace Elearn.Application
             services.AddScoped<ICartService, Elearn.Application.Services.Implementations.Cart.CartService>();
             services.AddScoped<IOrderService, Elearn.Application.Services.Implementations.Order.OrderService>();
             services.AddScoped<IInstructorService, Elearn.Application.Services.Implementations.Instructor.InstructorService>();
+            services.AddScoped<IUserService, Elearn.Application.Services.Implementations.UserService>();
+            services.AddScoped<ISectionService, Elearn.Application.Services.Implementations.SectionService>();
             
             // Đăng ký validators
             services.AddValidators();

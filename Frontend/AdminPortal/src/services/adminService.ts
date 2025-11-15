@@ -360,3 +360,183 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
   }
 };
 
+// User DTOs
+export interface UserListDto {
+  id: string;
+  email: string;
+  fullName: string;
+  avatarUrl?: string;
+  role: string;
+  userType: string;
+  emailConfirmed: boolean;
+  lockoutEnabled: boolean;
+  lockoutEnd?: string;
+  createdAt: string;
+  totalEnrollments: number;
+  completedCourses: number;
+}
+
+export interface UserDetailsDto extends UserListDto {
+  updatedAt?: string;
+  inProgressCourses: number;
+  phoneNumber?: string;
+  accessFailedCount: number;
+}
+
+export interface UpdateUserDto {
+  fullName?: string;
+  avatarUrl?: string;
+  role?: string;
+  emailConfirmed?: boolean;
+  lockoutEnabled?: boolean;
+  lockoutEnd?: string;
+}
+
+export interface ResetPasswordDto {
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export const userService = {
+  getAll: async (params?: {
+    pageNumber?: number;
+    pageSize?: number;
+    keyword?: string;
+    sortBy?: string;
+    isDescending?: boolean;
+    role?: string;
+    userType?: string;
+    emailConfirmed?: boolean;
+    isLocked?: boolean;
+  }) => {
+    const res = await adminApi.get('/AdminUser', { params });
+    return res.data;
+  },
+
+  getById: async (id: string) => {
+    const res = await adminApi.get(`/AdminUser/${id}`);
+    return res.data;
+  },
+
+  update: async (id: string, data: UpdateUserDto) => {
+    const res = await adminApi.put(`/AdminUser/${id}`, data);
+    return res.data;
+  },
+
+  delete: async (id: string) => {
+    const res = await adminApi.delete(`/AdminUser/${id}`);
+    return res.data;
+  },
+
+  lock: async (id: string, lockoutEnd?: string) => {
+    const res = await adminApi.post(`/AdminUser/${id}/lock`, lockoutEnd ? { lockoutEnd } : null);
+    return res.data;
+  },
+
+  unlock: async (id: string) => {
+    const res = await adminApi.post(`/AdminUser/${id}/unlock`);
+    return res.data;
+  },
+
+  resetPassword: async (id: string, data: ResetPasswordDto) => {
+    const res = await adminApi.post(`/AdminUser/${id}/reset-password`, data);
+    return res.data;
+  },
+
+  changeRole: async (id: string, role: string) => {
+    const res = await adminApi.post(`/AdminUser/${id}/change-role`, { role });
+    return res.data;
+  },
+};
+
+// Section DTOs
+export interface SectionDto {
+  id: string;
+  courseId: string;
+  title: string;
+  description?: string;
+  orderIndex: number;
+  isPreviewable: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  lecturesCount: number;
+}
+
+export interface SectionDetailsDto extends SectionDto {
+  courseTitle?: string;
+  lectures?: LectureDto[];
+}
+
+export interface CreateSectionDto {
+  courseId: string;
+  title: string;
+  description?: string;
+  orderIndex: number;
+  isPreviewable: boolean;
+}
+
+export interface UpdateSectionDto {
+  title?: string;
+  description?: string;
+  orderIndex?: number;
+  isPreviewable?: boolean;
+}
+
+export interface LectureDto {
+  id: string;
+  sectionId: string;
+  title: string;
+  type: string;
+  duration?: number;
+  videoUrl?: string;
+  content?: string;
+  orderIndex: number;
+  isPreviewable: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  resourcesCount: number;
+}
+
+export const sectionService = {
+  getAll: async (params?: {
+    pageNumber?: number;
+    pageSize?: number;
+    keyword?: string;
+    sortBy?: string;
+    isDescending?: boolean;
+  }) => {
+    const res = await adminApi.get('/AdminSection', { params });
+    return res.data;
+  },
+
+  getById: async (id: string) => {
+    const res = await adminApi.get(`/AdminSection/${id}`);
+    return res.data;
+  },
+
+  getByCourseId: async (courseId: string) => {
+    const res = await adminApi.get(`/AdminSection/course/${courseId}`);
+    return res.data;
+  },
+
+  create: async (data: CreateSectionDto) => {
+    const res = await adminApi.post('/AdminSection', data);
+    return res.data;
+  },
+
+  update: async (id: string, data: UpdateSectionDto) => {
+    const res = await adminApi.put(`/AdminSection/${id}`, data);
+    return res.data;
+  },
+
+  delete: async (id: string) => {
+    const res = await adminApi.delete(`/AdminSection/${id}`);
+    return res.data;
+  },
+
+  restore: async (id: string) => {
+    const res = await adminApi.post(`/AdminSection/${id}/restore`);
+    return res.data;
+  },
+};
+

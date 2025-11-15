@@ -9,6 +9,7 @@ namespace Elearn.Search.Models
         public decimal Price { get; set; }
         public int DurationInMinutes { get; set; }
         public string? CategoryId { get; set; }
+        public bool IsPublished { get; set; }
 
         // This property name matches the index mapping field "title_suggest"
         public string title_suggest => Title;

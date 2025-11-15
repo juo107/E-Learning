@@ -72,6 +72,36 @@ html.dark body {
   background: var(--text-secondary);
 }
 
+/* Thin scrollbar for sidebar */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5);
+}
+
+html.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.3);
+}
+
+html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(75, 85, 99, 0.5);
+}
+
 /* focus-visible ring (exclude text inputs) */
 :where(a, button, [role='button'], select, details, summary):focus-visible {
   outline: 2px solid #6366f1; /* indigo-500 */
@@ -100,6 +130,26 @@ input:focus-visible, textarea:focus-visible {
 
 .animate-fade-in { 
   animation: fade-in .25s ease-in both; 
+}
+
+/* Slide in from top animation */
+@keyframes slide-in-from-top {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation-fill-mode: both;
+}
+
+.slide-in-from-top-2 {
+  animation: slide-in-from-top 0.2s ease-out;
 }
 
 /* simple spinner */

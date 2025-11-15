@@ -71,6 +71,7 @@ namespace Elearn.Search.Services
                         { "title", new TextProperty() },
                         { "description", new TextProperty() },
                         { "courseCode", new KeywordProperty() },
+                        { "isPublished", new BooleanProperty() },
                         { "title_suggest", new CompletionProperty() }
                     }
                 }
@@ -99,13 +100,17 @@ namespace Elearn.Search.Services
             return response.Found ? response.Source : null;
         }
 
-        public async Task<IEnumerable<T>> SearchAsync<T>(string query, string? index = null) where T : class
+        public async Task<IEnumerable<T>> SearchAsync<T>(string query, string? index = null, bool onlyPublished = true) where T : class
         {
             var targetIndex = index ?? _defaultIndex;
             var response = await _client.SearchAsync<T>(s => s
                 .Indices(targetIndex)
                 .Query(q => q
-                    .QueryString(qs => qs.Query(query))));
+                    .Bool(b => b
+                        .Must(m => m
+                            .QueryString(qs => qs.Query(query)))
+                        .Filter(f => f
+                            .Term(t => t.Field("isPublished").Value(onlyPublished))))));
 
             if (!response.IsValidResponse)
             {
@@ -125,18 +130,21 @@ namespace Elearn.Search.Services
             }
         }
 
-        public async Task<IEnumerable<string>> AutocompleteAsync(string prefix, string? index = null, int size = 10, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<string>> AutocompleteAsync(string prefix, string? index = null, int size = 10, bool onlyPublished = true, CancellationToken cancellationToken = default)
         {
             var targetIndex = index ?? _defaultIndex;
 
             var response = await _client.SearchAsync<Models.CourseSearchDocument>(s => s
                 .Indices(targetIndex)
                 .Size(size)
-                .Query(q => q.MatchPhrasePrefix(m => m
-                    .Field("title")
-                    .Query(prefix)
-                ))
-            );
+                .Query(q => q
+                    .Bool(b => b
+                        .Must(m => m
+                            .MatchPhrasePrefix(mp => mp
+                                .Field("title")
+                                .Query(prefix)))
+                        .Filter(f => f
+                            .Term(t => t.Field("isPublished").Value(onlyPublished))))));
 
             if (!response.IsValidResponse)
             {

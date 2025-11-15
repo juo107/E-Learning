@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   Plus,
   Search,
@@ -13,6 +13,7 @@ import {
   Filter,
   Download,
   AlertTriangle,
+  Loader2,
 } from 'lucide-react';
 import {
   courseService,
@@ -30,10 +31,14 @@ export default function Courses() {
   const [courses, setCourses] = useState<CourseDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFiltering, setIsFiltering] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState<ViewMode>('all');
   const [showFilters, setShowFilters] = useState(false);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const filterSectionRef = useRef<HTMLDivElement>(null);
+  const filterTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<CourseDetailsDto | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -52,6 +57,9 @@ export default function Courses() {
     maxDuration: '',
     createdFrom: '',
     createdTo: '',
+    level: '',
+    language: '',
+    isPublished: '',
     sortBy: 'createdAt',
     isDescending: true,
   });
@@ -82,9 +90,35 @@ export default function Courses() {
     fetchCategories();
   }, []);
 
+  // Debounce filter changes to avoid too many API calls
   useEffect(() => {
-    fetchCourses();
+    // Clear previous timeout
+    if (filterTimeoutRef.current) {
+      clearTimeout(filterTimeoutRef.current);
+    }
+
+    // Set loading state immediately for better UX
+    setIsFiltering(true);
+
+    // Debounce the actual fetch
+    filterTimeoutRef.current = setTimeout(() => {
+      fetchCourses();
+    }, 300); // 300ms debounce
+
+    return () => {
+      if (filterTimeoutRef.current) {
+        clearTimeout(filterTimeoutRef.current);
+      }
+    };
   }, [page, searchTerm, filters, viewMode]);
+
+  // Scroll to filter section smoothly when filters change (but not on initial load)
+  useEffect(() => {
+    // Only scroll if we have courses (not initial load)
+    if (courses.length > 0 && filterSectionRef.current) {
+      filterSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [filters, searchTerm, viewMode]);
 
   const fetchCategories = async () => {
     try {
@@ -98,6 +132,7 @@ export default function Courses() {
 
   const fetchCourses = async () => {
     setLoading(true);
+    setIsFiltering(true);
     try {
       const params: any = {
         pageNumber: page,
@@ -115,15 +150,23 @@ export default function Courses() {
       if (filters.maxDuration) params.maxDurationInMinutes = parseInt(filters.maxDuration);
       if (filters.createdFrom) params.createdFrom = filters.createdFrom;
       if (filters.createdTo) params.createdTo = filters.createdTo;
+      if (filters.level) params.level = filters.level;
+      if (filters.language) params.language = filters.language;
+      if (filters.isPublished === 'published') {
+        params.onlyPublished = true;
+      } else if (filters.isPublished === 'draft') {
+        params.onlyDraft = true;
+      }
 
       const response = await courseService.getAll(params);
       const data = response.data?.data || response.data || [];
       setCourses(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch courses:', error);
-      alert('Failed to fetch courses');
+      showToast('Failed to fetch courses', 'error');
     } finally {
       setLoading(false);
+      setIsFiltering(false);
     }
   };
 
@@ -316,6 +359,9 @@ export default function Courses() {
       maxDuration: '',
       createdFrom: '',
       createdTo: '',
+      level: '',
+      language: '',
+      isPublished: '',
       sortBy: 'createdAt',
       isDescending: true,
     });
@@ -445,7 +491,7 @@ export default function Courses() {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
+      <div ref={filterSectionRef} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
         <div className="flex items-center gap-4 mb-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -472,9 +518,12 @@ export default function Courses() {
           </button>
           <button
             onClick={fetchCourses}
-            className="p-2 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            disabled={isFiltering}
+            className={`p-2 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
+              isFiltering ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
-            <RefreshCw className="w-5 h-5" />
+            <RefreshCw className={`w-5 h-5 ${isFiltering ? 'animate-spin' : ''}`} />
           </button>
         </div>
 
@@ -496,6 +545,49 @@ export default function Courses() {
                     {cat.name}
                   </option>
                 ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Level
+              </label>
+              <select
+                value={filters.level}
+                onChange={(e) => setFilters({ ...filters, level: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">All Levels</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Language
+              </label>
+              <select
+                value={filters.language}
+                onChange={(e) => setFilters({ ...filters, language: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">All Languages</option>
+                <option value="Vi">Vietnamese</option>
+                <option value="En">English</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Published Status
+              </label>
+              <select
+                value={filters.isPublished}
+                onChange={(e) => setFilters({ ...filters, isPublished: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">All</option>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
               </select>
             </div>
             <div>
@@ -611,10 +703,26 @@ export default function Courses() {
       </div>
 
       {/* Courses Table */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-        {loading ? (
+      <div 
+        ref={tableRef}
+        className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden relative"
+      >
+        {/* Loading Overlay */}
+        {isFiltering && (
+          <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">Filtering courses...</p>
+            </div>
+          </div>
+        )}
+
+        {loading && !isFiltering ? (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">Loading courses...</p>
+            </div>
           </div>
         ) : courses.length === 0 ? (
           <div className="text-center py-12">
@@ -656,7 +764,9 @@ export default function Courses() {
                 {courses.map((course) => (
                   <tr
                     key={course.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
+                      isFiltering ? 'opacity-50' : ''
+                    }`}
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {course.courseCode}

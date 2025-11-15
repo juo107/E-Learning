@@ -71,7 +71,10 @@ namespace Elearn.Infrastructure.Repository.Interfaces
             string? sortBy = null,
             bool isDescending = true,
             bool onlyPublished = false,
-            bool includeDeleted = false);
+            bool onlyDraft = false,
+            bool includeDeleted = false,
+            int? level = null,
+            int? language = null);
         
         /// <summary>
         /// Lấy courses theo instructor profile ID

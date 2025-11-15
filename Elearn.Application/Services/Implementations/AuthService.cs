@@ -109,10 +109,27 @@ namespace Elearn.Application.Services.Implementations
                 throw new Exception("Invalid email or password");
             }
 
+            // Check sign-in result - this validates password and checks other conditions
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, lockoutOnFailure: false);
             
             if (!result.Succeeded)
             {
+                // Provide more specific error messages for better debugging
+                if (result.IsLockedOut)
+                {
+                    throw new Exception("Account is locked out. Please try again later.");
+                }
+                if (result.IsNotAllowed)
+                {
+                    throw new Exception("Account is not allowed to sign in. Please contact support.");
+                }
+                if (result.RequiresTwoFactor)
+                {
+                    throw new Exception("Two-factor authentication is required.");
+                }
+                
+                // Default to generic error for security (don't reveal if email exists)
+                // This typically means password is incorrect
                 throw new Exception("Invalid email or password");
             }
 

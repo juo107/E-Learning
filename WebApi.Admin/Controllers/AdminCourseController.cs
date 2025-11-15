@@ -36,8 +36,37 @@ namespace WebApi.Admin.Controllers
             [FromQuery] DateTime? createdTo = null,
             [FromQuery] string? sortBy = "createdAt",
             [FromQuery] bool isDescending = true,
-            [FromQuery] bool includeDeleted = false)
+            [FromQuery] bool includeDeleted = false,
+            [FromQuery] bool onlyPublished = false,
+            [FromQuery] bool onlyDraft = false,
+            [FromQuery] string? level = null,
+            [FromQuery] string? language = null)
         {
+            // Convert level string to enum number
+            int? levelValue = null;
+            if (!string.IsNullOrEmpty(level))
+            {
+                levelValue = level switch
+                {
+                    "Beginner" => 0,
+                    "Intermediate" => 1,
+                    "Advanced" => 2,
+                    _ => null
+                };
+            }
+
+            // Convert language string to enum number
+            int? languageValue = null;
+            if (!string.IsNullOrEmpty(language))
+            {
+                languageValue = language switch
+                {
+                    "Vi" => 0,
+                    "En" => 1,
+                    _ => null
+                };
+            }
+
             var query = new QueryParameters
             {
                 PageNumber = pageNumber,
@@ -52,7 +81,11 @@ namespace WebApi.Admin.Controllers
                 CreatedTo = createdTo,
                 SortBy = sortBy,
                 IsDescending = isDescending,
-                IncludeDeleted = includeDeleted
+                IncludeDeleted = includeDeleted,
+                OnlyPublished = onlyPublished,
+                OnlyDraft = onlyDraft,
+                Level = levelValue,
+                Language = languageValue
             };
 
             var result = await _courseService.GetAllCoursesAsync(query);

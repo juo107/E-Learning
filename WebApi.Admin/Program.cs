@@ -18,9 +18,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ElearnDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
+        builder.Configuration.GetConnectionString("WriteConnection"),
         b => b.MigrationsAssembly("Elearn.Infrastructure")
     ));
+builder.Services.AddDbContext<ReadDbContext>(options =>
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("ReadConnection")
+    );
+
+    options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+});
 
 // Configure Identity
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>

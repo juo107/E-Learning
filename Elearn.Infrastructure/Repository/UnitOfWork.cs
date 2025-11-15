@@ -19,6 +19,7 @@ namespace Elearn.Infrastructure.Repository
         public ICartItemRepository CartItems { get; }
         public IBlacklistedTokenRepository BlacklistedTokens { get; }
         public IInstructorProfileRepository InstructorProfiles { get; }
+        public ISectionRepository Sections { get; }
 
         public UnitOfWork(ElearnDbContext context, ReadDbContext readContext)
         {
@@ -34,6 +35,7 @@ namespace Elearn.Infrastructure.Repository
             CartItems = new CartItemRepository(_context);
             BlacklistedTokens = new BlacklistedTokenRepository(_context);
             InstructorProfiles = new InstructorProfileRepository(_context);
+            Sections = new SectionRepository(_context);
         }
 
         public async Task<int> CompleteAsync()

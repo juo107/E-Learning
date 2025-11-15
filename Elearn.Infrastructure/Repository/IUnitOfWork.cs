@@ -15,6 +15,7 @@ namespace Elearn.Infrastructure.Repository
         ICartItemRepository CartItems { get; }
         IBlacklistedTokenRepository BlacklistedTokens { get; }
         IInstructorProfileRepository InstructorProfiles { get; }
+        ISectionRepository Sections { get; }
         Task<int> CompleteAsync();
     }
 }

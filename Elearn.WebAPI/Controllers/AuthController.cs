@@ -66,11 +66,12 @@ namespace Elearn.WebAPI.Controllers
                 }
 
                 var result = await _authService.LoginAsync(loginDto);
+                _logger.LogInformation("Login successful for email: {Email}", loginDto?.Email);
                 return Ok(BaseResponse<AuthResponseDto>.Ok(result, "Login successful"));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Login failed for email: {Email}", loginDto?.Email);
+                _logger.LogError(ex, "Login failed for email: {Email}. Error: {ErrorMessage}", loginDto?.Email, ex.Message);
                 return BadRequest(BaseResponse<AuthResponseDto>.Fail(ex.Message));
             }
         }

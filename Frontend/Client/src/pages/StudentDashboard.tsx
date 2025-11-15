@@ -9,7 +9,8 @@ import {
   BarChart3,
   Activity
 } from 'lucide-react';
-import { getMyEnrollments, getStudentStats, getLearningActivities, getRecentActivities, getLearningStreak } from '../services/student';
+// TODO: Uncomment when API endpoints are ready
+// import { getMyEnrollments, getStudentStats, getLearningActivities, getRecentActivities, getLearningStreak } from '../services/student';
 import type { EnrollmentDto, StudentStats, LearningActivity, RecentActivity } from '../services/student';
 import {
   CourseProgressCard,
@@ -36,19 +37,143 @@ export default function StudentDashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [enrollmentsData, statsData, activitiesData, recentData, streakData] = await Promise.all([
-        getMyEnrollments(),
-        getStudentStats(),
-        getLearningActivities(),
-        getRecentActivities(5),
-        getLearningStreak()
-      ]);
+      
+      // TODO: Replace with actual API calls when endpoints are ready
+      // Temporary hardcoded data for development
+      const mockEnrollments: EnrollmentDto[] = [
+        {
+          enrollmentId: 1,
+          userId: 1,
+          courseId: 1,
+          progress: 65,
+          enrolledAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          course: {
+            courseId: 1,
+            title: 'Introduction to Web Development',
+            description: 'Learn the fundamentals of web development',
+            categoryId: 1,
+            level: 'Beginner',
+            teacherName: 'John Doe',
+            createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        },
+        {
+          enrollmentId: 2,
+          userId: 1,
+          courseId: 2,
+          progress: 100,
+          enrolledAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+          completedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+          course: {
+            courseId: 2,
+            title: 'Advanced JavaScript',
+            description: 'Master advanced JavaScript concepts',
+            categoryId: 1,
+            level: 'Advanced',
+            teacherName: 'Jane Smith',
+            createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        },
+        {
+          enrollmentId: 3,
+          userId: 1,
+          courseId: 3,
+          progress: 30,
+          enrolledAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+          course: {
+            courseId: 3,
+            title: 'React Fundamentals',
+            description: 'Build modern web applications with React',
+            categoryId: 1,
+            level: 'Intermediate',
+            teacherName: 'Mike Johnson',
+            createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        }
+      ];
 
-      setEnrollments(enrollmentsData);
-      setStats(statsData);
-      setActivities(activitiesData);
-      setRecentActivities(recentData);
-      setStreak(streakData);
+      const mockStats: StudentStats = {
+        totalEnrollments: 3,
+        completedCourses: 1,
+        inProgressCourses: 2,
+        totalStudyTime: 1250, // minutes
+        currentStreak: 7,
+        longestStreak: 15,
+        averageScore: 85.5
+      };
+
+      // Generate mock activities for the last 3 months
+      const mockActivities: LearningActivity[] = [];
+      const today = new Date();
+      for (let i = 90; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        if (Math.random() > 0.3) { // 70% chance of activity
+          mockActivities.push({
+            date: date.toISOString().split('T')[0],
+            studyTime: Math.floor(Math.random() * 120) + 30, // 30-150 minutes
+            coursesStudied: Math.floor(Math.random() * 3) + 1,
+            lessonsCompleted: Math.floor(Math.random() * 5) + 1
+          });
+        }
+      }
+
+      const mockRecentActivities: RecentActivity[] = [
+        {
+          id: 1,
+          type: 'lesson_completed',
+          title: 'Completed: React Hooks',
+          description: 'Finished lesson on React Hooks in React Fundamentals',
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          courseId: 3
+        },
+        {
+          id: 2,
+          type: 'quiz_taken',
+          title: 'Quiz Completed',
+          description: 'Scored 90% on JavaScript Quiz',
+          timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+          courseId: 1
+        },
+        {
+          id: 3,
+          type: 'enrollment',
+          title: 'Enrolled in React Fundamentals',
+          description: 'Started learning React Fundamentals',
+          timestamp: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+          courseId: 3
+        },
+        {
+          id: 4,
+          type: 'completion',
+          title: 'Course Completed',
+          description: 'Completed Advanced JavaScript course',
+          timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+          courseId: 2
+        },
+        {
+          id: 5,
+          type: 'lesson_completed',
+          title: 'Completed: ES6 Features',
+          description: 'Finished lesson on ES6 Features',
+          timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+          courseId: 1
+        }
+      ];
+
+      const mockStreak = {
+        current: 7,
+        longest: 15
+      };
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      setEnrollments(mockEnrollments);
+      setStats(mockStats);
+      setActivities(mockActivities);
+      setRecentActivities(mockRecentActivities);
+      setStreak(mockStreak);
     } catch (err: any) {
       setError(t('common.somethingWentWrong') + '. ' + t('common.pleaseTryAgain'));
       console.error('Dashboard load error:', err);

@@ -32,7 +32,16 @@ namespace Elearn.Application.Common
         public DateTime? CreatedFrom { get; set; }
         public DateTime? CreatedTo { get; set; }
         public bool OnlyPublished { get; set; } = false;
+        public bool OnlyDraft { get; set; } = false;
         public bool IncludeDeleted { get; set; } = false;
+        public int? Level { get; set; }
+        public int? Language { get; set; }
+        
+        // User filters
+        public string? Role { get; set; }
+        public string? UserType { get; set; }
+        public bool? EmailConfirmed { get; set; }
+        public bool? IsLocked { get; set; }
     }
 }
 
