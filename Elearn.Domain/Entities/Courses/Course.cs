@@ -36,6 +36,9 @@ namespace Elearn.Domain.Entities
         
         // Navigation property to CourseMedia
         public ICollection<CourseMedia> CourseMedias { get; set; } = new List<CourseMedia>();
+        
+        // Navigation property to Sections
+        public ICollection<Section> Sections { get; set; } = new List<Section>();
     }
 }
 

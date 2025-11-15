@@ -28,6 +28,9 @@ namespace Elearn.Infrastructure.Data
         public DbSet<UserCourse> UserCourses { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<BlacklistedToken> BlacklistedTokens { get; set; }
+        public DbSet<Section> Sections { get; set; }
+        public DbSet<Lecture> Lectures { get; set; }
+        public DbSet<Resource> Resources { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -475,6 +478,70 @@ namespace Elearn.Infrastructure.Data
                 entity.HasIndex(ci => new { ci.SessionId, ci.CourseId, ci.Status })
                     .HasDatabaseName("IX_CartItem_Session_Course_Status")
                     .HasFilter("[SessionId] IS NOT NULL AND [Status] = 0");
+            });
+
+            // Configure Section entity
+            modelBuilder.Entity<Section>(entity =>
+            {
+                entity.HasKey(s => s.Id);
+                entity.Property(s => s.Title).IsRequired().HasMaxLength(255);
+                entity.Property(s => s.Description).HasMaxLength(1000);
+                entity.Property(s => s.OrderIndex).IsRequired();
+                entity.Property(s => s.IsPreviewable).IsRequired().HasDefaultValue(false);
+
+                // Configure relationship with Course
+                entity.HasOne(s => s.Course)
+                    .WithMany(c => c.Sections)
+                    .HasForeignKey(s => s.CourseId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Indexes
+                entity.HasIndex(s => s.CourseId);
+                entity.HasIndex(s => new { s.CourseId, s.OrderIndex });
+            });
+
+            // Configure Lecture entity
+            modelBuilder.Entity<Lecture>(entity =>
+            {
+                entity.HasKey(l => l.Id);
+                entity.Property(l => l.Title).IsRequired().HasMaxLength(255);
+                entity.Property(l => l.Type).IsRequired().HasConversion<int>();
+                entity.Property(l => l.VideoUrl).HasMaxLength(1000);
+                entity.Property(l => l.OrderIndex).IsRequired();
+                entity.Property(l => l.IsPreviewable).IsRequired().HasDefaultValue(false);
+
+                // Configure relationship with Section
+                entity.HasOne(l => l.Section)
+                    .WithMany(s => s.Lectures)
+                    .HasForeignKey(l => l.SectionId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Indexes
+                entity.HasIndex(l => l.SectionId);
+                entity.HasIndex(l => new { l.SectionId, l.OrderIndex });
+                entity.HasIndex(l => l.Type);
+            });
+
+            // Configure Resource entity
+            modelBuilder.Entity<Resource>(entity =>
+            {
+                entity.HasKey(r => r.Id);
+                entity.Property(r => r.FileName).IsRequired().HasMaxLength(500);
+                entity.Property(r => r.FileUrl).IsRequired().HasMaxLength(1000);
+                entity.Property(r => r.ResourceType).IsRequired().HasConversion<int>();
+
+                // Configure relationship with Lecture
+                entity.HasOne(r => r.Lecture)
+                    .WithMany(l => l.Resources)
+                    .HasForeignKey(r => r.LectureId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Indexes
+                entity.HasIndex(r => r.LectureId);
+                entity.HasIndex(r => r.ResourceType);
             });
         }
     }
