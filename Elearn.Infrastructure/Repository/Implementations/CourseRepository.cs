@@ -7,11 +7,14 @@ namespace Elearn.Infrastructure.Repository.Implementations
 {
     public class CourseRepository : GenericRepository<Course>, ICourseRepository
     {
-        private readonly ElearnDbContext _context;
+        private readonly ElearnDbContext _write;
+        private readonly ReadDbContext _read;
 
-        public CourseRepository(ElearnDbContext context) : base(context)
+        public CourseRepository(ElearnDbContext write, ReadDbContext read)
+            : base(write)
         {
-            _context = context;
+            _write = write;
+            _read = read;
         }
 
         /// <summary>
@@ -22,9 +25,10 @@ namespace Elearn.Infrastructure.Repository.Implementations
             if (string.IsNullOrWhiteSpace(courseCode))
                 return null;
 
-            return await _context.Courses
+            return await _read.Courses
                 .Include(c => c.Category)
-                .FirstOrDefaultAsync(c => !c.IsDeleted && 
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => !c.IsDeleted &&
                     c.CourseCode.ToLower() == courseCode.ToLower().Trim());
         }
 
@@ -35,8 +39,9 @@ namespace Elearn.Infrastructure.Repository.Implementations
         {
             if (string.IsNullOrWhiteSpace(title)) return Enumerable.Empty<Course>();
             var t = title.ToLower().Trim();
-            return await _context.Courses
+            return await _read.Courses
                 .Include(c => c.Category)
+                .AsNoTracking()
                 .Where(c => !c.IsDeleted && c.Title.ToLower() == t)
                 .ToListAsync();
         }
@@ -49,8 +54,9 @@ namespace Elearn.Infrastructure.Repository.Implementations
             if (string.IsNullOrWhiteSpace(courseCode))
                 return false;
 
-            return await _context.Courses
-                .AnyAsync(c => !c.IsDeleted && 
+            return await _read.Courses
+                .AsNoTracking()
+                .AnyAsync(c => !c.IsDeleted &&
                     c.CourseCode.ToLower() == courseCode.ToLower().Trim());
         }
 
@@ -59,7 +65,8 @@ namespace Elearn.Infrastructure.Repository.Implementations
         /// </summary>
         public async Task<IEnumerable<Course>> GetCoursesByCategoryAsync(Guid categoryId)
         {
-            return await _context.Courses
+            return await _read.Courses
+                .AsNoTracking()
                 .Where(c => !c.IsDeleted && c.CategoryId == categoryId)
                 .OrderBy(c => c.Title)
                 .ToListAsync();
@@ -70,8 +77,9 @@ namespace Elearn.Infrastructure.Repository.Implementations
         /// </summary>
         public async Task<IEnumerable<Course>> GetCoursesWithCategoryAsync()
         {
-            return await _context.Courses
+            return await _read.Courses
                 .Include(c => c.Category)
+                .AsNoTracking()
                 .Where(c => !c.IsDeleted)
                 .OrderBy(c => c.Title)
                 .ToListAsync();
@@ -83,12 +91,13 @@ namespace Elearn.Infrastructure.Repository.Implementations
         public async Task<IEnumerable<Course>> SearchCoursesAsync(string keyword)
         {
             if (string.IsNullOrWhiteSpace(keyword))
-                return await GetAllAsync();
+                return await _read.Courses.AsNoTracking().ToListAsync();
 
             var searchTerm = keyword.ToLower().Trim();
-            return await _context.Courses
-                .Where(c => !c.IsDeleted && 
-                    (c.Title.ToLower().Contains(searchTerm) || 
+            return await _read.Courses
+                .AsNoTracking()
+                .Where(c => !c.IsDeleted &&
+                    (c.Title.ToLower().Contains(searchTerm) ||
                      c.Description.ToLower().Contains(searchTerm) ||
                      c.CourseCode.ToLower().Contains(searchTerm)))
                 .OrderBy(c => c.Title)
@@ -100,7 +109,8 @@ namespace Elearn.Infrastructure.Repository.Implementations
         /// </summary>
         public async Task<IEnumerable<Course>> GetDeletedCoursesAsync()
         {
-            return await _context.Courses
+            return await _read.Courses
+                .AsNoTracking()
                 .Where(c => c.IsDeleted)
                 .OrderByDescending(c => c.UpdatedAt)
                 .ToListAsync();
@@ -111,16 +121,16 @@ namespace Elearn.Infrastructure.Repository.Implementations
         /// </summary>
         public async Task<bool> RestoreCourseAsync(Guid id)
         {
-            var course = await _context.Courses.FindAsync(id);
+            var course = await _write.Courses.FindAsync(id);
             if (course == null || !course.IsDeleted)
                 return false;
 
             course.IsDeleted = false;
             course.UpdatedAt = DateTime.UtcNow;
-            course.UpdatedBy = "System"; // TODO: Get from current user context
-            
-            _context.Courses.Update(course);
-            await _context.SaveChangesAsync();
+            course.UpdatedBy = "System";
+
+            _write.Courses.Update(course);
+            await _write.SaveChangesAsync();
             return true;
         }
 
@@ -129,7 +139,8 @@ namespace Elearn.Infrastructure.Repository.Implementations
         /// </summary>
         public async Task<IEnumerable<Course>> GetCoursesByPriceRangeAsync(decimal minPrice, decimal maxPrice)
         {
-            return await _context.Courses
+            return await _read.Courses
+                .AsNoTracking()
                 .Where(c => !c.IsDeleted && c.Price >= minPrice && c.Price <= maxPrice)
                 .OrderBy(c => c.Price)
                 .ToListAsync();
@@ -140,8 +151,9 @@ namespace Elearn.Infrastructure.Repository.Implementations
         /// </summary>
         public async Task<IEnumerable<Course>> GetCoursesByDurationRangeAsync(int minDuration, int maxDuration)
         {
-            return await _context.Courses
-                .Where(c => !c.IsDeleted && 
+            return await _read.Courses
+                .AsNoTracking()
+                .Where(c => !c.IsDeleted &&
                     c.DurationInMinutes >= minDuration && c.DurationInMinutes <= maxDuration)
                 .OrderBy(c => c.DurationInMinutes)
                 .ToListAsync();
@@ -163,24 +175,21 @@ namespace Elearn.Infrastructure.Repository.Implementations
             bool onlyPublished = false,
             bool includeDeleted = false)
         {
-            var query = _context.Courses
+            var query = _read.Courses
                 .Include(c => c.Category)
                 .Include(c => c.CourseMedias)
+                .AsNoTracking()
                 .AsQueryable();
 
-            // Filter by IsDeleted based on includeDeleted parameter
             if (includeDeleted)
             {
-                // If includeDeleted is true, only return deleted courses
                 query = query.Where(c => c.IsDeleted);
             }
             else
             {
-                // If includeDeleted is false, exclude deleted courses (default behavior)
                 query = query.Where(c => !c.IsDeleted);
             }
 
-            // Filter by IsPublished if onlyPublished is true (for public API)
             if (onlyPublished)
             {
                 query = query.Where(c => c.IsPublished);
@@ -254,7 +263,8 @@ namespace Elearn.Infrastructure.Repository.Implementations
         /// </summary>
         public async Task<IEnumerable<Course>> GetCoursesByInstructorIdAsync(int instructorProfileId)
         {
-            return await _context.Courses
+            return await _read.Courses
+                .AsNoTracking()
                 .Where(c => !c.IsDeleted && c.InstructorProfileId == instructorProfileId)
                 .Include(c => c.Category)
                 .OrderByDescending(c => c.CreatedAt)

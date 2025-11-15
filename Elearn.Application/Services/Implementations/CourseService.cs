@@ -14,6 +14,7 @@ namespace Elearn.Application.Services.Implementations
     public class CourseService : ICourseService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IReadUnitOfWork _readUnitOfWork;
         private readonly IMapper _mapper;
         private readonly ICourseSearchRepository _courseSearchRepository;
         private readonly IRedisCacheService _cache;
@@ -21,7 +22,8 @@ namespace Elearn.Application.Services.Implementations
         private readonly ILogger<CourseService> _logger;
 
         public CourseService(
-            IUnitOfWork unitOfWork, 
+            IUnitOfWork unitOfWork,
+            IReadUnitOfWork readUnitOfWork,
             IMapper mapper, 
             ICourseSearchRepository courseSearchRepository, 
             IRedisCacheService cache, 
@@ -29,6 +31,7 @@ namespace Elearn.Application.Services.Implementations
             ILogger<CourseService> logger)
         {
             _unitOfWork = unitOfWork;
+            _readUnitOfWork = readUnitOfWork;
             _mapper = mapper;
             _courseSearchRepository = courseSearchRepository;
             _cache = cache;
@@ -55,8 +58,8 @@ namespace Elearn.Application.Services.Implementations
                     return BaseResponse<IEnumerable<CourseDto>>.Ok(cachedCourses, "Courses retrieved from cache");
                 }
 
-                // If not in cache, get from database
-                var (items, totalCount) = await _unitOfWork.Courses.GetFilteredPagedAsync(
+                // If not in cache, get from database using read-only unit of work
+                var (items, totalCount) = await _readUnitOfWork.Courses.GetFilteredPagedAsync(
                     parameters.PageNumber,
                     parameters.PageSize,
                     parameters.Keyword,
@@ -90,14 +93,15 @@ namespace Elearn.Application.Services.Implementations
             try
             {
                 var cacheKey = $"course:{id}";
-                // Temporarily bypass cache to ensure fresh data
-                // var cachedCourse = await _cache.GetAsync<CourseDetailsDto>(cacheKey);
-                // if (cachedCourse != null)
-                // {
-                //     return BaseResponse<CourseDetailsDto>.Ok(cachedCourse, "Course retrieved from cache");
-                // }
+                // Try to get from cache first
+                var cachedCourse = await _cache.GetAsync<CourseDetailsDto>(cacheKey);
+                if (cachedCourse != null)
+                {
+                    return BaseResponse<CourseDetailsDto>.Ok(cachedCourse, "Course retrieved from cache");
+                }
 
-                var course = await _unitOfWork.Courses.GetByIdWithIncludesAsync(id, 
+                // If not in cache, get from database using read-only unit of work
+                var course = await _readUnitOfWork.Courses.GetByIdWithIncludesAsync(id, 
                     c => c.Category, 
                     c => c.CourseMedias,
                     c => c.InstructorProfile!,
@@ -121,7 +125,7 @@ namespace Elearn.Application.Services.Implementations
                         course.Id, instructor.Id, user.Id, user.FullName, user.Email);
                     
                     // Count total courses by this instructor
-                    var totalCourses = await _unitOfWork.Courses.GetCoursesByInstructorIdAsync(instructor.Id);
+                    var totalCourses = await _readUnitOfWork.Courses.GetCoursesByInstructorIdAsync(instructor.Id);
                     var coursesList = totalCourses.ToList();
                     
                     // Determine FullName with fallback
@@ -366,7 +370,7 @@ namespace Elearn.Application.Services.Implementations
 
         public async Task<bool> CourseCodeExistsAsync(string courseCode)
         {
-            return await _unitOfWork.Courses.ExistsByCourseCodeAsync(courseCode);
+            return await _readUnitOfWork.Courses.ExistsByCourseCodeAsync(courseCode);
         }
 
         private async Task<string> GenerateUniqueCourseCodeAsync()
@@ -390,13 +394,13 @@ namespace Elearn.Application.Services.Implementations
                 Course? course = null;
                 if (indexedId.HasValue)
                 {
-                    course = await _unitOfWork.Courses.GetByIdWithIncludesAsync(indexedId.Value, c => c.Category, c => c.CourseMedias);
+                    course = await _readUnitOfWork.Courses.GetByIdWithIncludesAsync(indexedId.Value, c => c.Category, c => c.CourseMedias);
                 }
 
                 // 2) Nếu miss index, truy vấn theo courseCode và set index lại
                 if (course == null)
                 {
-                    course = await _unitOfWork.Courses.GetByCourseCodeAsync(courseCode);
+                    course = await _readUnitOfWork.Courses.GetByCourseCodeAsync(courseCode);
                     if (course != null)
                     {
                         await _memoryIndex.SetCourseCodeIndexAsync(courseCode, course.Id);
@@ -429,7 +433,7 @@ namespace Elearn.Application.Services.Implementations
                     // Lấy theo danh sách id (nên có phương thức repo batch-by-ids, tạm dùng từng cái)
                     foreach (var id in indexedIds)
                     {
-                        var c = await _unitOfWork.Courses.GetByIdWithIncludesAsync(id, x => x.Category, x => x.CourseMedias);
+                        var c = await _readUnitOfWork.Courses.GetByIdWithIncludesAsync(id, x => x.Category, x => x.CourseMedias);
                         if (c != null) courses.Add(c);
                     }
                 }
@@ -437,7 +441,7 @@ namespace Elearn.Application.Services.Implementations
                 if (courses.Count == 0)
                 {
                     // Miss index -> DB
-                    var dbCourses = await _unitOfWork.Courses.GetByTitleAsync(title);
+                    var dbCourses = await _readUnitOfWork.Courses.GetByTitleAsync(title);
                     courses = dbCourses.ToList();
                     // Lưu index để lần sau truy vấn nhanh
                     foreach (var c in courses)
@@ -459,7 +463,7 @@ namespace Elearn.Application.Services.Implementations
         {
             try
             {
-                var courses = await _unitOfWork.Courses.GetCoursesByCategoryAsync(categoryId);
+                var courses = await _readUnitOfWork.Courses.GetCoursesByCategoryAsync(categoryId);
                 var courseDtos = _mapper.Map<IEnumerable<CourseDto>>(courses);
                 return BaseResponse<IEnumerable<CourseDto>>.Ok(courseDtos, "Courses retrieved successfully");
             }
@@ -529,7 +533,7 @@ namespace Elearn.Application.Services.Implementations
         {
             try
             {
-                var courses = await _unitOfWork.Courses.GetAllAsync();
+                var courses = await _readUnitOfWork.Courses.GetAllAsync();
                 var courseDtos = _mapper.Map<IEnumerable<CourseDto>>(courses);
 
                 foreach (var course in courseDtos)
@@ -567,7 +571,7 @@ namespace Elearn.Application.Services.Implementations
                 }
 
                 // Lấy tất cả courses chưa có instructor
-                var allCourses = await _unitOfWork.Courses.GetAllAsync();
+                var allCourses = await _readUnitOfWork.Courses.GetAllAsync();
                 var coursesWithoutInstructor = allCourses
                     .Where(c => c.InstructorProfileId == null || c.InstructorProfileId == 0)
                     .ToList();

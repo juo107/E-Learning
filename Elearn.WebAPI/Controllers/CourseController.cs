@@ -40,6 +40,11 @@ namespace Elearn.WebAPI.Controllers
         #region GetAll
         [HttpGet]
         [ProducesResponseType(typeof(BaseResponse<IEnumerable<CourseDto>>), StatusCodes.Status200OK)]
+        [ResponseCache(
+            Duration = 300, // 5 phút - cache response trong 5 phút
+            Location = ResponseCacheLocation.Any, // Cache cả client và server
+            VaryByQueryKeys = new[] { "pageNumber", "pageSize", "keyword", "categoryId", "minPrice", "maxPrice", "minDurationInMinutes", "maxDurationInMinutes", "sortBy", "isDescending" } // Cache riêng cho mỗi bộ query parameters
+        )]
         public async Task<IActionResult> GetAll(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
@@ -79,6 +84,11 @@ namespace Elearn.WebAPI.Controllers
         #region Autocomplete
         [HttpGet("autocomplete")]
         [ProducesResponseType(typeof(BaseResponse<IEnumerable<string>>), StatusCodes.Status200OK)]
+        [ResponseCache(
+            Duration = 300, // 5 phút
+            Location = ResponseCacheLocation.Any,
+            VaryByQueryKeys = new[] { "prefix", "size" }
+        )]
         public async Task<IActionResult> Autocomplete([FromQuery] string prefix, [FromQuery] int size = 10)
         {
             var result = await _courseService.AutocompleteCoursesAsync(prefix, size);
@@ -89,6 +99,11 @@ namespace Elearn.WebAPI.Controllers
         #region Search
         [HttpGet("search")]
         [ProducesResponseType(typeof(BaseResponse<IEnumerable<CourseDto>>), StatusCodes.Status200OK)]
+        [ResponseCache(
+            Duration = 300, // 5 phút
+            Location = ResponseCacheLocation.Any,
+            VaryByQueryKeys = new[] { "keyword" }
+        )]
         public async Task<IActionResult> Search([FromQuery] string keyword)
         {
             var result = await _courseService.SearchCoursesAsync(keyword);
@@ -100,6 +115,11 @@ namespace Elearn.WebAPI.Controllers
         [HttpGet("{id:guid}")]
         [ProducesResponseType(typeof(BaseResponse<CourseDetailsDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BaseResponse<CourseDetailsDto>), StatusCodes.Status404NotFound)]
+        [ResponseCache(
+            Duration = 600, // 10 phút - course details ít thay đổi hơn
+            Location = ResponseCacheLocation.Any
+            // Route values (id) tự động được dùng để tạo cache key riêng cho mỗi course
+        )]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _courseService.GetCourseByIdAsync(id);

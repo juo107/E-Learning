@@ -170,6 +170,10 @@ namespace Elearn.WebAPI.Controllers
         #region GetRootCategories (for Mega Menu)
         [HttpGet("root")]
         [ProducesResponseType(typeof(BaseResponse<IEnumerable<CategoryDto>>), StatusCodes.Status200OK)]
+        [ResponseCache(
+            Duration = 600, // 10 phút - categories ít thay đổi hơn nên cache lâu hơn
+            Location = ResponseCacheLocation.Any // Cache cả client và server
+        )]
         public async Task<IActionResult> GetRootCategories()
         {
             var result = await _categoryService.GetRootCategoriesAsync();

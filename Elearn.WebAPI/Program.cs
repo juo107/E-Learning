@@ -21,9 +21,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ElearnDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
+        builder.Configuration.GetConnectionString("WriteConnection"),
         b => b.MigrationsAssembly("Elearn.Infrastructure")
     ));
+builder.Services.AddDbContext<ReadDbContext>(options =>
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("ReadConnection")
+    );
+
+    options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+});
 
 // Configure Identity
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
@@ -86,6 +94,14 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod()
             .AllowCredentials();
     });
+});
+
+// Add Response Caching
+builder.Services.AddResponseCaching(options =>
+{
+    options.MaximumBodySize = 1024 * 1024; // 1 MB
+    options.UseCaseSensitivePaths = false; // Case-insensitive paths
+    options.SizeLimit = 100 * 1024 * 1024; // 100 MB total cache size
 });
 
 // Add services
@@ -153,6 +169,9 @@ if (app.Environment.IsDevelopment())
 
 // Use CORS
 app.UseCors("AllowFrontend");
+
+// Use Response Caching (must be before UseAuthentication/UseAuthorization)
+app.UseResponseCaching();
 
 // Global exception handling -> ProblemDetails
 app.UseMiddleware<Elearn.WebAPI.Middlewares.GlobalExceptionMiddleware>();

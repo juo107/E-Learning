@@ -8,6 +8,7 @@ namespace Elearn.Infrastructure.Repository
     public class UnitOfWork : IUnitOfWork
     {
         private readonly ElearnDbContext _context;
+        private readonly ReadDbContext _readContext;
         public ICourseRepository Courses { get; }
         public ICategoryRepository Categories { get; }
         public ICourseMediaRepository CourseMedias { get; }
@@ -19,10 +20,11 @@ namespace Elearn.Infrastructure.Repository
         public IBlacklistedTokenRepository BlacklistedTokens { get; }
         public IInstructorProfileRepository InstructorProfiles { get; }
 
-        public UnitOfWork(ElearnDbContext context)
+        public UnitOfWork(ElearnDbContext context, ReadDbContext readContext)
         {
             _context = context;
-            Courses = new CourseRepository(_context);
+            _readContext = readContext;
+            Courses = new CourseRepository(_context, _readContext);
             Categories = new CategoryRepository(_context);
             CourseMedias = new CourseMediaRepository(_context);
             Promotions = new PromotionRepository(_context);
