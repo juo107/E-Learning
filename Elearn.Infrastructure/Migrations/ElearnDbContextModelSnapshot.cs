@@ -351,6 +351,62 @@ namespace Elearn.Infrastructure.Migrations
                     b.ToTable("CourseMedias");
                 });
 
+            modelBuilder.Entity("Elearn.Domain.Entities.Courses.LectureContent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("BlockType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("DataJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<Guid>("LectureId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlockType");
+
+                    b.HasIndex("LectureId");
+
+                    b.HasIndex("LectureId", "OrderIndex");
+
+                    b.ToTable("LectureContents");
+                });
+
             modelBuilder.Entity("Elearn.Domain.Entities.Identity.ApplicationPermission", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1453,6 +1509,17 @@ namespace Elearn.Infrastructure.Migrations
                     b.Navigation("Course");
                 });
 
+            modelBuilder.Entity("Elearn.Domain.Entities.Courses.LectureContent", b =>
+                {
+                    b.HasOne("Elearn.Domain.Entities.Lecture", "Lecture")
+                        .WithMany("LectureContents")
+                        .HasForeignKey("LectureId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lecture");
+                });
+
             modelBuilder.Entity("Elearn.Domain.Entities.Identity.ApplicationRolePermission", b =>
                 {
                     b.HasOne("Elearn.Domain.Entities.Identity.ApplicationPermission", "Permission")
@@ -1728,6 +1795,8 @@ namespace Elearn.Infrastructure.Migrations
 
             modelBuilder.Entity("Elearn.Domain.Entities.Lecture", b =>
                 {
+                    b.Navigation("LectureContents");
+
                     b.Navigation("Resources");
                 });
 

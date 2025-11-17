@@ -1,5 +1,7 @@
-import { Edit, Trash2, Eye, Loader2 } from 'lucide-react';
+import { Edit, Trash2, Eye, FolderTree, Loader2 } from 'lucide-react';
 import { SectionDto, CourseDto } from '../../services/adminService';
+import TableLoading from '../ui/TableLoading';
+import { BookOpen } from 'lucide-react';
 
 interface SectionTableProps {
   sections: SectionDto[];
@@ -9,6 +11,7 @@ interface SectionTableProps {
   onView: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  onViewLectures?: (sectionId: string) => void;
 }
 
 export default function SectionTable({
@@ -19,6 +22,7 @@ export default function SectionTable({
   onView,
   onEdit,
   onDelete,
+  onViewLectures,
 }: SectionTableProps) {
   const formatDate = (dateString: string) => {
     try {
@@ -37,62 +41,80 @@ export default function SectionTable({
     return course?.title || courseId.substring(0, 8) + '...';
   };
 
-  if (loading && !isFiltering) {
-    return (
-      <div className="p-12 text-center">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mx-auto mb-4" />
-        <p className="text-gray-600 dark:text-gray-400">Loading sections...</p>
-      </div>
-    );
-  }
-
-  if (sections.length === 0) {
-    return (
-      <div className="p-12 text-center">
-        <p className="text-gray-600 dark:text-gray-400">No sections found</p>
-      </div>
-    );
-  }
-
   return (
     <div className="overflow-x-auto relative">
+      {/* Filtering Overlay */}
       {isFiltering && (
-        <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-10 flex items-center justify-center">
+        <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-            <p className="text-sm text-gray-600 dark:text-gray-400">Filtering sections...</p>
+            <div className="relative">
+              <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
+              <div className="absolute inset-0 bg-indigo-600/20 dark:bg-indigo-400/20 rounded-full blur-lg animate-pulse" />
+            </div>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 animate-pulse">
+              Filtering sections...
+            </p>
           </div>
         </div>
       )}
-      <table className="w-full">
-        <thead className="bg-gray-50 dark:bg-gray-800">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Title
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Course
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Order
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Lectures
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Preview
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Created
-            </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
-          {sections.map((section) => (
-            <tr key={section.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+
+      <div className={isFiltering ? 'opacity-50 pointer-events-none' : ''}>
+        <table className="w-full">
+          <thead className="bg-gray-50 dark:bg-gray-800">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Title
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Course
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Order
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Lectures
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Preview
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Created
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          {loading && !isFiltering ? (
+            <TableLoading
+              loading={loading}
+              isEmpty={false}
+              skeletonRows={5}
+              skeletonColumns={7}
+            />
+          ) : sections.length === 0 ? (
+            <TableLoading
+              loading={false}
+              isEmpty={true}
+              emptyMessage="No sections found"
+              emptyIcon={BookOpen}
+              skeletonColumns={7}
+            />
+          ) : (
+            <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
+              {sections.map((section) => (
+            <tr
+              key={section.id}
+              onClick={(e) => {
+                const target = e.target as HTMLElement;
+                if (!target.closest('button') && !target.closest('svg') && onViewLectures) {
+                  onViewLectures(section.id);
+                }
+              }}
+              className={`hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-colors ${
+                onViewLectures ? 'cursor-pointer' : ''
+              }`}
+            >
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-medium text-gray-900 dark:text-white">
                   {section.title}
@@ -114,8 +136,24 @@ export default function SectionTable({
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                 {section.orderIndex}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                {section.lecturesCount}
+              <td className="px-6 py-4 whitespace-nowrap">
+                {onViewLectures ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewLectures(section.id);
+                    }}
+                    className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                    title="View Lectures"
+                  >
+                    <FolderTree className="w-4 h-4" />
+                    <span className="text-sm font-medium">{section.lecturesCount || 0}</span>
+                  </button>
+                ) : (
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    {section.lecturesCount || 0}
+                  </span>
+                )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 {section.isPreviewable ? (
@@ -132,7 +170,7 @@ export default function SectionTable({
                 {formatDate(section.createdAt)}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <div className="flex items-center justify-end gap-2">
+                <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => onView(section.id)}
                     className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
@@ -158,8 +196,10 @@ export default function SectionTable({
               </td>
             </tr>
           ))}
-        </tbody>
-      </table>
+            </tbody>
+          )}
+        </table>
+      </div>
     </div>
   );
 }

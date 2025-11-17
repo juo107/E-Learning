@@ -3,12 +3,19 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { fetchCourseById, type CourseDetailDto } from '../services/courses';
 import { addToCart, getCartItems, type CartItemDto } from '../services/cart';
 import { getInstructorCourses } from '../services/instructor';
+import { getSectionsByCourseId, type SectionWithLecturesDto } from '../services/sections';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../store/useCart';
-import { Star } from 'lucide-react';
+import { Star, Lock, Play, FileText, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-function SectionAccordion({ sec, index }: { sec: any; index: number }) {
+interface SectionAccordionProps {
+  section: SectionWithLecturesDto;
+  index: number;
+  isEnrolled: boolean;
+}
+
+function SectionAccordion({ section, index, isEnrolled }: SectionAccordionProps) {
   const [open, setOpen] = useState(index === 0);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [maxH, setMaxH] = useState<string>(open ? '1000px' : '0px');
@@ -22,9 +29,27 @@ function SectionAccordion({ sec, index }: { sec: any; index: number }) {
     } else {
       setMaxH('0px');
     }
-  }, [open, sec]);
+  }, [open, section]);
 
-  const totalMin = (sec.items || []).reduce((sum: number, it: any) => sum + Math.round((it.durationSec||0)/60), 0);
+  const totalMinutes = section.lectures.reduce((sum, lecture) => sum + Math.round(lecture.duration / 60), 0);
+  const formatDuration = (seconds: number) => {
+    const mins = Math.round(seconds / 60);
+    if (mins < 60) return `${mins} phút`;
+    const hours = Math.floor(mins / 60);
+    const remainingMins = mins % 60;
+    return remainingMins > 0 ? `${hours}h ${remainingMins}m` : `${hours}h`;
+  };
+
+  const getLectureIcon = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case 'video':
+        return <Play className="w-4 h-4" />;
+      case 'text':
+        return <FileText className="w-4 h-4" />;
+      default:
+        return <FileText className="w-4 h-4" />;
+    }
+  };
 
   return (
     <div className="border-b border-gray-200 dark:border-gray-800">
@@ -36,13 +61,24 @@ function SectionAccordion({ sec, index }: { sec: any; index: number }) {
       >
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500"/>
-          <div className="font-semibold text-gray-900 dark:text-gray-100">
-            {index+1}. {sec.title}
+          <div className="text-left">
+            <div className="font-semibold text-gray-900 dark:text-gray-100">
+              {index + 1}. {section.title}
+            </div>
+            {section.description && (
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                {section.description}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3 text-sm text-gray-500">
-          <span>{(sec.items||[]).length} bài • ~{totalMin} phút</span>
-          <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 011.08 1.04l-4.25 4.25a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z" clipRule="evenodd"/></svg>
+          <span>{section.lectures.length} bài • {formatDuration(totalMinutes * 60)}</span>
+          {open ? (
+            <ChevronUp className="w-4 h-4 transition-transform" />
+          ) : (
+            <ChevronDown className="w-4 h-4 transition-transform" />
+          )}
         </div>
       </button>
       <div
@@ -52,19 +88,51 @@ function SectionAccordion({ sec, index }: { sec: any; index: number }) {
         className="overflow-hidden transition-[max-height] duration-500 ease-out bg-white/40 dark:bg-gray-900/40"
       >
         <ul className="divide-y divide-gray-200 dark:divide-gray-800">
-          {(sec.items || []).map((ls: any) => (
-            <li key={ls.lessonId} className="flex items-center justify-between px-6 py-2">
-              <span className="flex items-center gap-3">
-                <span className="text-gray-500">{ls.orderIndex}.</span>
-                <span className="text-gray-800 dark:text-gray-200">{ls.title}</span>
-              </span>
-              <span className="text-sm text-gray-500">{Math.round((ls.durationSec||0)/60)} min</span>
-            </li>
-          ))}
+          {section.lectures.map((lecture) => {
+            const canAccess = isEnrolled || lecture.isPreviewable;
+            return (
+              <li 
+                key={lecture.id} 
+                className={`flex items-center justify-between px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${
+                  !canAccess ? 'opacity-60' : ''
+                }`}
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="flex-shrink-0 text-gray-400 dark:text-gray-500">
+                    {lecture.orderIndex}.
+                  </div>
+                  <div className="flex-shrink-0 text-gray-400 dark:text-gray-500">
+                    {getLectureIcon(lecture.type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm ${canAccess ? 'text-gray-800 dark:text-gray-200' : 'text-gray-500 dark:text-gray-400'}`}>
+                        {lecture.title}
+                      </span>
+                      {!canAccess && (
+                        <Lock className="w-3 h-3 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                      )}
+                      {lecture.isPreviewable && !isEnrolled && (
+                        <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
+                          Preview
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    <span>{formatDuration(lecture.duration)}</span>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>
-  )
+  );
 }
 
 export default function CourseDetail() {
@@ -79,6 +147,9 @@ export default function CourseDetail() {
   const [cartError, setCartError] = useState<string | null>(null);
   const [cartItems, setCartItems] = useState<CartItemDto[]>([]);
   const [instructorCourses, setInstructorCourses] = useState<any[]>([]);
+  const [sections, setSections] = useState<SectionWithLecturesDto[]>([]);
+  const [loadingSections, setLoadingSections] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false); // TODO: Check enrollment status from API
 
   useEffect(() => {
     if (!id) {
@@ -104,6 +175,39 @@ export default function CourseDetail() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [id]);
+
+  // Load sections and lectures
+  useEffect(() => {
+    if (!id) return;
+
+    const loadSections = async () => {
+      setLoadingSections(true);
+      try {
+        const sectionsData = await getSectionsByCourseId(id);
+        setSections(sectionsData.sort((a, b) => a.orderIndex - b.orderIndex));
+      } catch (error) {
+        console.error('Error loading sections:', error);
+      } finally {
+        setLoadingSections(false);
+      }
+    };
+
+    loadSections();
+  }, [id]);
+
+  // TODO: Check enrollment status
+  // useEffect(() => {
+  //   if (!id || !isAuthenticated) {
+  //     setIsEnrolled(false);
+  //     return;
+  //   }
+  //   // Check if user has enrolled in this course
+  //   // const checkEnrollment = async () => {
+  //   //   const enrolled = await checkCourseEnrollment(id);
+  //   //   setIsEnrolled(enrolled);
+  //   // };
+  //   // checkEnrollment();
+  // }, [id, isAuthenticated]);
 
   // Load cart items to check if course is already in cart
   useEffect(() => {
@@ -261,38 +365,36 @@ export default function CourseDetail() {
             </div>
           </div>
           <h1 className="mt-4 text-2xl md:text-3xl font-bold tracking-tight">{course.title}</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">{course.shortDescription}</p>
-          {course.description && (
-            <div className="mt-4 whitespace-pre-line text-gray-700 dark:text-gray-300">{course.description}</div>
+          {course.description && course.description !== course.shortDescription ? (
+            <div className="mt-2 whitespace-pre-line text-gray-700 dark:text-gray-300">{course.description}</div>
+          ) : (
+            <p className="mt-2 text-gray-600 dark:text-gray-400">{course.shortDescription}</p>
           )}
 
-          {/* Curriculum (Sections with dropdown) */}
-          {(() => { const anyCourse = course as any; return (
-            (Array.isArray(anyCourse?.curriculum) && anyCourse.curriculum.length > 0) ? (
-              <div className="mt-6">
-                <h2 className="text-xl font-semibold mb-2">Nội dung khóa học</h2>
-                <div className="rounded-xl border border-gray-200/60 dark:border-gray-800/60 overflow-hidden">
-                  {anyCourse.curriculum.map((sec: any, idx: number) => (
-                    <SectionAccordion key={sec.sectionId || idx} sec={sec} index={idx} />
-                  ))}
-                </div>
+          {/* Curriculum (Sections with lectures) */}
+          <div className="mt-6">
+            <h2 className="text-xl font-semibold mb-4">Nội dung khóa học</h2>
+            {loadingSections ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="loading-spinner" />
+              </div>
+            ) : sections.length > 0 ? (
+              <div className="rounded-xl border border-gray-200/60 dark:border-gray-800/60 overflow-hidden bg-white dark:bg-gray-900">
+                {sections.map((section, idx) => (
+                  <SectionAccordion 
+                    key={section.id} 
+                    section={section} 
+                    index={idx}
+                    isEnrolled={isEnrolled}
+                  />
+                ))}
               </div>
             ) : (
-              course.lessons && course.lessons.length > 0 && (
-                <div className="mt-6">
-                  <h2 className="text-xl font-semibold mb-2">Nội dung khóa học</h2>
-                  <ul className="divide-y divide-gray-200 dark:divide-gray-800 rounded-xl border border-gray-200/60 dark:border-gray-800/60">
-                    {course.lessons.map(ls => (
-                      <li key={ls.lessonId} className="flex items-center justify-between px-4 py-2">
-                        <span>{ls.orderIndex}. {ls.title}</span>
-                        <span className="text-sm text-gray-500">{Math.round(ls.durationSec/60)} min</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )
-            )
-          )})()}
+              <div className="rounded-xl border border-gray-200/60 dark:border-gray-800/60 p-6 text-center text-gray-500 dark:text-gray-400">
+                <p>Chưa có nội dung khóa học</p>
+              </div>
+            )}
+          </div>
 
           {/* Requirements */}
           {(Array.isArray(anyCourse?.requirements) && anyCourse.requirements.length > 0) && (

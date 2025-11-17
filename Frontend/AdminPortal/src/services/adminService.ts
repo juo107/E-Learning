@@ -497,6 +497,61 @@ export interface LectureDto {
   resourcesCount: number;
 }
 
+export interface LectureDetailsDto extends LectureDto {
+  sectionTitle?: string;
+}
+
+export interface CreateLectureDto {
+  sectionId: string;
+  title: string;
+  type: string; // 'Video' | 'Text' | 'Quiz' | 'Assignment'
+  duration?: number;
+  videoUrl?: string;
+  content?: string;
+  orderIndex: number;
+  isPreviewable: boolean;
+}
+
+export interface UpdateLectureDto {
+  title?: string;
+  type?: string;
+  duration?: number;
+  videoUrl?: string;
+  content?: string;
+  orderIndex?: number;
+  isPreviewable?: boolean;
+}
+
+export interface ResourceDto {
+  id: string;
+  lectureId: string;
+  fileName: string;
+  fileUrl: string;
+  resourceType: string; // 'Pdf' | 'Zip' | 'Code' | 'Image' | 'Link'
+  fileSizeKB?: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface ResourceDetailsDto extends ResourceDto {
+  lectureTitle?: string;
+}
+
+export interface CreateResourceDto {
+  lectureId: string;
+  fileName: string;
+  fileUrl: string;
+  resourceType: string;
+  fileSizeKB?: number;
+}
+
+export interface UpdateResourceDto {
+  fileName?: string;
+  fileUrl?: string;
+  resourceType?: string;
+  fileSizeKB?: number;
+}
+
 export const sectionService = {
   getAll: async (params?: {
     pageNumber?: number;
@@ -536,6 +591,94 @@ export const sectionService = {
 
   restore: async (id: string) => {
     const res = await adminApi.post(`/AdminSection/${id}/restore`);
+    return res.data;
+  },
+};
+
+// Lecture Service
+export const lectureService = {
+  getAll: async (params?: {
+    pageNumber?: number;
+    pageSize?: number;
+    keyword?: string;
+    sortBy?: string;
+    isDescending?: boolean;
+  }) => {
+    const res = await adminApi.get('/AdminLecture', { params });
+    return res.data;
+  },
+
+  getById: async (id: string) => {
+    const res = await adminApi.get(`/AdminLecture/${id}`);
+    return res.data;
+  },
+
+  getBySectionId: async (sectionId: string) => {
+    const res = await adminApi.get(`/AdminLecture/section/${sectionId}`);
+    return res.data;
+  },
+
+  create: async (data: CreateLectureDto) => {
+    const res = await adminApi.post('/AdminLecture', data);
+    return res.data;
+  },
+
+  update: async (id: string, data: UpdateLectureDto) => {
+    const res = await adminApi.put(`/AdminLecture/${id}`, data);
+    return res.data;
+  },
+
+  delete: async (id: string) => {
+    const res = await adminApi.delete(`/AdminLecture/${id}`);
+    return res.data;
+  },
+
+  restore: async (id: string) => {
+    const res = await adminApi.post(`/AdminLecture/${id}/restore`);
+    return res.data;
+  },
+};
+
+// Resource Service
+export const resourceService = {
+  getAll: async (params?: {
+    pageNumber?: number;
+    pageSize?: number;
+    keyword?: string;
+    sortBy?: string;
+    isDescending?: boolean;
+  }) => {
+    const res = await adminApi.get('/AdminResource', { params });
+    return res.data;
+  },
+
+  getById: async (id: string) => {
+    const res = await adminApi.get(`/AdminResource/${id}`);
+    return res.data;
+  },
+
+  getByLectureId: async (lectureId: string) => {
+    const res = await adminApi.get(`/AdminResource/lecture/${lectureId}`);
+    return res.data;
+  },
+
+  create: async (data: CreateResourceDto) => {
+    const res = await adminApi.post('/AdminResource', data);
+    return res.data;
+  },
+
+  update: async (id: string, data: UpdateResourceDto) => {
+    const res = await adminApi.put(`/AdminResource/${id}`, data);
+    return res.data;
+  },
+
+  delete: async (id: string) => {
+    const res = await adminApi.delete(`/AdminResource/${id}`);
+    return res.data;
+  },
+
+  restore: async (id: string) => {
+    const res = await adminApi.post(`/AdminResource/${id}/restore`);
     return res.data;
   },
 };

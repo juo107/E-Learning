@@ -24,9 +24,7 @@ import {
   MessageSquare,
   Award,
   CreditCard,
-  Eye,
   Video,
-  FileEdit,
   Search,
   AlertTriangle,
   PieChart,
@@ -96,11 +94,11 @@ export default function AdminLayout() {
       section: 'management',
       children: [
         { icon: BookOpen, label: 'All Courses', path: '/courses' },
-        { icon: Eye, label: 'Course Moderation', path: '/courses/moderation' },
         { icon: Video, label: 'Videos & Files', path: '/courses/media' },
-        { icon: FileEdit, label: 'Content Editor', path: '/courses/editor' },
         { icon: FolderTree, label: 'Categories', path: '/categories' },
         { icon: BookOpen, label: 'Sections', path: '/sections' },
+        { icon: Video, label: 'Lectures', path: '/lectures' },
+        { icon: FileText, label: 'Resources', path: '/resources' },
       ],
     },
     {
@@ -353,6 +351,7 @@ export default function AdminLayout() {
                           {item.children!.map((child, idx) => {
                             const ChildIcon = child.icon;
                             const childActive = isActive(child.path);
+                            
                             return (
                               <Link
                                 key={child.path}

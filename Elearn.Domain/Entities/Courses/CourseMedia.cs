@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Elearn.Domain.Entities.Enums;
 
@@ -34,7 +34,14 @@ namespace Elearn.Domain.Entities
         
         [Required]
         public MediaStatus Status { get; set; } = MediaStatus.Active;
-        
+
+        //Clodinary 
+        //public string PublicId { get; set; } = string.Empty;       // ID Cloudinary để xóa file
+        //public string FileFormat { get; set; } = string.Empty;     // jpg, png, webp, mp4,...
+        //public long FileSizeBytes { get; set; }                    // dung lượng tính theo bytes
+        //public string CloudResourceType { get; set; } = "image";   // image | video
+
+
         // Navigation property
         public Course? Course { get; set; }
     }

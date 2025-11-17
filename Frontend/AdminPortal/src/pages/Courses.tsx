@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -8,12 +9,13 @@ import {
   RefreshCw,
   X,
   Save,
-  BookOpen,
   RotateCcw,
   Filter,
   Download,
   AlertTriangle,
+  FolderTree,
   Loader2,
+  Shield,
 } from 'lucide-react';
 import {
   courseService,
@@ -24,10 +26,12 @@ import {
 } from '../services/adminService';
 import { categoryService, CategoryDto } from '../services/adminService';
 import { showToast } from '../components/ui/Toast';
+import TableLoading from '../components/ui/TableLoading';
 
 type ViewMode = 'all' | 'deleted';
 
 export default function Courses() {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<CourseDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +43,7 @@ export default function Courses() {
   const tableRef = useRef<HTMLDivElement>(null);
   const filterSectionRef = useRef<HTMLDivElement>(null);
   const filterTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [selectedCourse, setSelectedCourse] = useState<CourseDetailsDto | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -89,6 +94,67 @@ export default function Courses() {
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + K: Focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        return;
+      }
+
+      // Ctrl/Cmd + N: Create new course
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        if (!showCreateModal && !showEditModal && !showDetailsModal) {
+          setFormData({
+            title: '',
+            description: '',
+            price: 0,
+            durationInMinutes: 0,
+            categoryId: undefined,
+            level: 'Beginner',
+            language: 'Vi',
+            isPublished: false,
+          });
+          setShowCreateModal(true);
+        }
+        return;
+      }
+
+      // Escape: Close modals
+      if (e.key === 'Escape') {
+        if (showCreateModal) setShowCreateModal(false);
+        if (showEditModal) {
+          setShowEditModal(false);
+          setSelectedCourse(null);
+        }
+        if (showDetailsModal) {
+          setShowDetailsModal(false);
+          setSelectedCourse(null);
+        }
+        if (showDeleteModal) {
+          setShowDeleteModal(false);
+          setCourseToDelete(null);
+        }
+        if (showIndexModal) setShowIndexModal(false);
+        if (showFilters) setShowFilters(false);
+        return;
+      }
+
+      // Ctrl/Cmd + F: Toggle filters
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        setShowFilters(!showFilters);
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showCreateModal, showEditModal, showDetailsModal, showDeleteModal, showIndexModal, showFilters]);
 
   // Debounce filter changes to avoid too many API calls
   useEffect(() => {
@@ -289,6 +355,11 @@ export default function Courses() {
     }
   };
 
+  const handleRowClick = (courseId: string) => {
+    // Open moderation page in new tab
+    window.open(`/courses/moderation?courseId=${courseId}`, '_blank');
+  };
+
   // Helper function to populate edit form from course data
   const populateEditForm = (course: CourseDetailsDto | CourseDto) => {
     // Convert level from number/enum to string format
@@ -453,9 +524,11 @@ export default function Courses() {
               setShowCreateModal(true);
             }}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            title="Create new course (Ctrl+N)"
           >
             <Plus className="w-5 h-5" />
             New Course
+            <span className="text-xs opacity-75 ml-1">(Ctrl+N)</span>
           </button>
         </div>
       </div>
@@ -496,8 +569,9 @@ export default function Courses() {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
+              ref={searchInputRef}
               type="text"
-              placeholder="Search courses..."
+              placeholder="Search courses... (Ctrl+K)"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -707,75 +781,81 @@ export default function Courses() {
         ref={tableRef}
         className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden relative"
       >
-        {/* Loading Overlay */}
+        {/* Filtering Overlay */}
         {isFiltering && (
-          <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-10 flex items-center justify-center">
+          <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
             <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-              <p className="text-sm text-gray-600 dark:text-gray-400">Filtering courses...</p>
+              <div className="relative">
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
+                <div className="absolute inset-0 bg-indigo-600/20 dark:bg-indigo-400/20 rounded-full blur-lg animate-pulse" />
+              </div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400 animate-pulse">
+                Filtering courses...
+              </p>
             </div>
           </div>
         )}
 
-        {loading && !isFiltering ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-              <p className="text-sm text-gray-600 dark:text-gray-400">Loading courses...</p>
-            </div>
-          </div>
-        ) : courses.length === 0 ? (
-          <div className="text-center py-12">
-            <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">No courses found</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Course Code
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Title
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Price
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Duration
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Level
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
+        <div className={`overflow-x-auto ${isFiltering ? 'opacity-50 pointer-events-none' : ''}`}>
+          <table className="w-full">
+            <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Title
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Category
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Price
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Sections
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            {loading && !isFiltering ? (
+              <TableLoading
+                loading={loading}
+                isEmpty={false}
+                skeletonRows={5}
+                skeletonColumns={6}
+              />
+            ) : courses.length === 0 ? (
+              <TableLoading
+                loading={false}
+                isEmpty={true}
+                emptyMessage="No courses found"
+                skeletonColumns={6}
+              />
+            ) : (
               <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                 {courses.map((course) => (
                   <tr
                     key={course.id}
-                    className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                      isFiltering ? 'opacity-50' : ''
-                    }`}
+                    onClick={(e) => {
+                      // Don't trigger row click if clicking on action buttons
+                      const target = e.target as HTMLElement;
+                      if (!target.closest('button') && !target.closest('svg')) {
+                        handleRowClick(course.id);
+                      }
+                    }}
+                    className="hover:bg-indigo-50 dark:hover:bg-indigo-950/20 cursor-pointer transition-colors"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                      {course.courseCode}
-                    </td>
                     <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
                       <div className="max-w-md">
                         <div className="font-medium">{course.title}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {course.courseCode}
+                        </div>
                         {course.description && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">
                             {course.description}
                           </div>
                         )}
@@ -800,12 +880,6 @@ export default function Courses() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {formatDuration(course.durationInMinutes)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {formatLevel(course.level)}
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -817,8 +891,28 @@ export default function Courses() {
                         {course.isPublished ? 'Published' : 'Draft'}
                       </span>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRowClick(course.id);
+                        }}
+                        className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                        title="View Sections"
+                      >
+                        <FolderTree className="w-4 h-4" />
+                        <span className="text-sm font-medium">View</span>
+                      </button>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => window.open(`/courses/moderation?courseId=${course.id}`, '_blank')}
+                          className="p-2 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/50 rounded-lg transition-colors"
+                          title="Open Moderation (New Tab)"
+                        >
+                          <Shield className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => handleViewDetails(course.id)}
                           className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg transition-colors"
@@ -858,9 +952,9 @@ export default function Courses() {
                   </tr>
                 ))}
               </tbody>
-            </table>
-          </div>
-        )}
+            )}
+          </table>
+        </div>
       </div>
 
       {/* Pagination */}

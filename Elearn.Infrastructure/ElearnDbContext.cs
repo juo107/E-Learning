@@ -31,6 +31,7 @@ namespace Elearn.Infrastructure.Data
         public DbSet<Section> Sections { get; set; }
         public DbSet<Lecture> Lectures { get; set; }
         public DbSet<Resource> Resources { get; set; }
+        public DbSet<Domain.Entities.Courses.LectureContent> LectureContents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -542,6 +543,27 @@ namespace Elearn.Infrastructure.Data
                 // Indexes
                 entity.HasIndex(r => r.LectureId);
                 entity.HasIndex(r => r.ResourceType);
+            });
+
+            // Configure LectureContent entity
+            modelBuilder.Entity<Domain.Entities.Courses.LectureContent>(entity =>
+            {
+                entity.HasKey(lc => lc.Id);
+                entity.Property(lc => lc.BlockType).IsRequired().HasConversion<int>();
+                entity.Property(lc => lc.DataJson).IsRequired().HasColumnType("nvarchar(max)");
+                entity.Property(lc => lc.OrderIndex).IsRequired();
+
+                // Configure relationship with Lecture
+                entity.HasOne(lc => lc.Lecture)
+                    .WithMany(l => l.LectureContents)
+                    .HasForeignKey(lc => lc.LectureId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Indexes
+                entity.HasIndex(lc => lc.LectureId);
+                entity.HasIndex(lc => new { lc.LectureId, lc.OrderIndex });
+                entity.HasIndex(lc => lc.BlockType);
             });
         }
     }

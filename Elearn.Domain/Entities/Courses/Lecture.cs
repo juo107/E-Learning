@@ -1,4 +1,5 @@
 using Elearn.Domain.Entities.Enums;
+using Elearn.Domain.Entities.Courses;
 
 namespace Elearn.Domain.Entities
 {
@@ -18,9 +19,19 @@ namespace Elearn.Domain.Entities
         public string? Content { get; set; } // Nội dung text (nếu type = Text)
         public int OrderIndex { get; set; }
         public bool IsPreviewable { get; set; } = false;
-        
+
+        ////Cloudinary
+        //public string? PublicId { get; set; }                        // ID Cloudinary
+        //public string? FileFormat { get; set; }                      // mp4/mov
+        //public long? FileSizeBytes { get; set; }                     // bytes
+        //public string? CloudResourceType { get; set; } = "video";    // video
+
+
         // Navigation property to Resources
         public ICollection<Resource> Resources { get; set; } = new List<Resource>();
+
+        // Navigation property to LectureContents
+        public ICollection<LectureContent> LectureContents { get; set; } = new List<LectureContent>();
     }
 }
 

@@ -6,6 +6,10 @@ import Categories from './pages/Categories';
 import Promotions from './pages/Promotions';
 import Users from './pages/Users';
 import Sections from './pages/Sections';
+import Lectures from './pages/Lectures';
+import Resources from './pages/Resources';
+import Moderation from './pages/Moderation';
+import LectureEditor from './pages/LectureEditor';
 import Login from './pages/Login';
 import Placeholder from './pages/Placeholder';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -28,6 +32,46 @@ function App() {
           } 
         />
         
+        {/* Moderation page - Full screen, no sidebar */}
+        <Route
+          path="/courses/moderation"
+          element={
+            token ? (
+              <ProtectedRoute>
+                <Moderation />
+              </ProtectedRoute>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+
+        {/* Content Editor pages - Full screen, no sidebar */}
+        <Route
+          path="/courses/editor"
+          element={
+            token ? (
+              <ProtectedRoute>
+                <LectureEditor />
+              </ProtectedRoute>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/lectures/:lectureId/editor"
+          element={
+            token ? (
+              <ProtectedRoute>
+                <LectureEditor />
+              </ProtectedRoute>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+
         {/* Protected routes - require authentication */}
         <Route
           path="/"
@@ -52,11 +96,11 @@ function App() {
           
           {/* Course Management */}
           <Route path="courses" element={<Courses />} />
-          <Route path="courses/moderation" element={<Placeholder />} />
           <Route path="courses/media" element={<Placeholder />} />
-          <Route path="courses/editor" element={<Placeholder />} />
           <Route path="categories" element={<Categories />} />
           <Route path="sections" element={<Sections />} />
+          <Route path="lectures" element={<Lectures />} />
+          <Route path="resources" element={<Resources />} />
           
           {/* Revenue & Payments */}
           <Route path="revenue" element={<Placeholder />} />

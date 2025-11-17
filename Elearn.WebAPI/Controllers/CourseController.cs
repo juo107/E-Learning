@@ -9,11 +9,13 @@ namespace Elearn.WebAPI.Controllers
     public class CourseController : BaseApiController<CourseController>
     {
         private readonly ICourseService _courseService;
+        private readonly ISectionService _sectionService;
 
-        public CourseController(ICourseService courseService, ILogger<CourseController> logger)
+        public CourseController(ICourseService courseService, ISectionService sectionService, ILogger<CourseController> logger)
             : base(logger)
         {
             _courseService = courseService;
+            _sectionService = sectionService;
         }
 
         #region Create
@@ -124,6 +126,69 @@ namespace Elearn.WebAPI.Controllers
         {
             var result = await _courseService.GetCourseByIdAsync(id);
             return HandleResponse(result);
+        }
+        #endregion
+
+        #region GetSections
+        /// <summary>
+        /// Get all sections with lectures for a course (Public API)
+        /// </summary>
+        [HttpGet("{id:guid}/sections")]
+        [ProducesResponseType(typeof(BaseResponse<IEnumerable<object>>), StatusCodes.Status200OK)]
+        [ResponseCache(
+            Duration = 600, // 10 phút
+            Location = ResponseCacheLocation.Any
+        )]
+        public async Task<IActionResult> GetSections(Guid id)
+        {
+            var sectionsResult = await _sectionService.GetSectionsByCourseIdAsync(id);
+            if (!sectionsResult.Success || sectionsResult.Data == null)
+            {
+                return HandleResponse(sectionsResult);
+            }
+
+            // Get detailed sections with lectures
+            var sectionsWithLectures = new List<object>();
+            foreach (var section in sectionsResult.Data)
+            {
+                var sectionDetailsResult = await _sectionService.GetSectionByIdAsync(section.Id);
+                if (sectionDetailsResult.Success && sectionDetailsResult.Data != null)
+                {
+                    var lecturesList = sectionDetailsResult.Data.Lectures != null
+                        ? sectionDetailsResult.Data.Lectures.Select(l => new
+                        {
+                            id = l.Id,
+                            sectionId = l.SectionId,
+                            title = l.Title,
+                            type = l.Type,
+                            duration = l.Duration,
+                            videoUrl = l.VideoUrl,
+                            content = l.Content,
+                            orderIndex = l.OrderIndex,
+                            isPreviewable = l.IsPreviewable,
+                            resourcesCount = l.ResourcesCount,
+                            createdAt = l.CreatedAt,
+                            updatedAt = l.UpdatedAt
+                        }).Cast<object>().ToList()
+                        : new List<object>();
+
+                    sectionsWithLectures.Add(new
+                    {
+                        id = sectionDetailsResult.Data.Id,
+                        courseId = sectionDetailsResult.Data.CourseId,
+                        title = sectionDetailsResult.Data.Title,
+                        description = sectionDetailsResult.Data.Description,
+                        orderIndex = sectionDetailsResult.Data.OrderIndex,
+                        isPreviewable = sectionDetailsResult.Data.IsPreviewable,
+                        lecturesCount = sectionDetailsResult.Data.LecturesCount,
+                        createdAt = sectionDetailsResult.Data.CreatedAt,
+                        updatedAt = sectionDetailsResult.Data.UpdatedAt,
+                        lectures = lecturesList
+                    });
+                }
+            }
+
+            return Ok(BaseResponse<object>.Ok(sectionsWithLectures, "Sections retrieved successfully"));
         }
         #endregion
 

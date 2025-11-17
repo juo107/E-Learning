@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import {
   sectionService,
@@ -15,6 +16,8 @@ import SectionModal from '../components/sections/SectionModal';
 import SectionDetailsModal from '../components/sections/SectionDetailsModal';
 
 export default function Sections() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [sections, setSections] = useState<SectionDto[]>([]);
   const [courses, setCourses] = useState<CourseDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +34,14 @@ export default function Sections() {
   const [modalLoading, setModalLoading] = useState(false);
   const filterTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pageSize = 10;
+
+  // Read courseId from URL query params
+  useEffect(() => {
+    const courseIdFromUrl = searchParams.get('courseId');
+    if (courseIdFromUrl) {
+      setSelectedCourseId(courseIdFromUrl);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchCourses();
@@ -168,6 +179,10 @@ export default function Sections() {
     }
   };
 
+  const handleViewLectures = (sectionId: string) => {
+    navigate(`/lectures?sectionId=${sectionId}`);
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -190,7 +205,15 @@ export default function Sections() {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         selectedCourseId={selectedCourseId}
-        onCourseChange={setSelectedCourseId}
+        onCourseChange={(courseId) => {
+          setSelectedCourseId(courseId);
+          // Update URL query params
+          if (courseId) {
+            setSearchParams({ courseId });
+          } else {
+            setSearchParams({});
+          }
+        }}
         courses={courses}
       />
 
@@ -204,6 +227,7 @@ export default function Sections() {
           onView={handleViewDetails}
           onEdit={handleEditClick}
           onDelete={handleDeleteClick}
+          onViewLectures={handleViewLectures}
         />
       </div>
 

@@ -20,6 +20,9 @@ namespace Elearn.Infrastructure.Repository
         public IBlacklistedTokenRepository BlacklistedTokens { get; }
         public IInstructorProfileRepository InstructorProfiles { get; }
         public ISectionRepository Sections { get; }
+        public ILectureRepository Lectures { get; }
+        public IResourceRepository Resources { get; }
+        public ILectureContentRepository LectureContents { get; }
 
         public UnitOfWork(ElearnDbContext context, ReadDbContext readContext)
         {
@@ -36,6 +39,9 @@ namespace Elearn.Infrastructure.Repository
             BlacklistedTokens = new BlacklistedTokenRepository(_context);
             InstructorProfiles = new InstructorProfileRepository(_context);
             Sections = new SectionRepository(_context);
+            Lectures = new LectureRepository(_context);
+            Resources = new ResourceRepository(_context);
+            LectureContents = new LectureContentRepository(_context);
         }
 
         public async Task<int> CompleteAsync()

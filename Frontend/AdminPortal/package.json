@@ -10,6 +10,11 @@
     "preview": "vite preview --port 4175"
   },
   "dependencies": {
+    "@tiptap/extension-image": "^3.10.7",
+    "@tiptap/extension-link": "^3.10.7",
+    "@tiptap/extension-placeholder": "^3.10.7",
+    "@tiptap/react": "^3.10.7",
+    "@tiptap/starter-kit": "^3.10.7",
     "axios": "^1.12.2",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
@@ -33,4 +38,3 @@
     "@types/react": "^19.1.13"
   }
 }
-
