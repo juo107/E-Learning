@@ -40,7 +40,7 @@ namespace Elearn.Application.Services.Implementations
                 }
 
                 // Create cache key
-                var cacheKey = $"users:list:{parameters.PageNumber}:{parameters.PageSize}:{parameters.Keyword}:{parameters.SortBy}:{parameters.IsDescending}:role:{parameters.Role}:userType:{parameters.UserType}:emailConfirmed:{parameters.EmailConfirmed}:isLocked:{parameters.IsLocked}";
+                var cacheKey = $"users:list:{parameters.PageNumber}:{parameters.PageSize}:{parameters.Keyword}:{parameters.SortBy}:{parameters.IsDescending}:role:{parameters.Role}:userType:{parameters.UserType}:emailConfirmed:{parameters.EmailConfirmed}:isLocked:{parameters.IsLocked}:excludeSuperAdmin";
                 
                 // Try to get from cache first
                 var cachedUsers = await _cache.GetAsync<IEnumerable<UserListDto>>(cacheKey);
@@ -50,6 +50,14 @@ namespace Elearn.Application.Services.Implementations
                 }
 
                 var query = _context.Users.AsQueryable();
+
+                // Exclude SystemSuperAdmin users
+                var superAdminUsers = await _userManager.GetUsersInRoleAsync("SystemSuperAdmin");
+                var superAdminUserIds = superAdminUsers.Select(u => u.Id).ToList();
+                if (superAdminUserIds.Any())
+                {
+                    query = query.Where(u => !superAdminUserIds.Contains(u.Id));
+                }
 
                 // Filter by keyword (email, fullname)
                 if (!string.IsNullOrWhiteSpace(parameters.Keyword))
