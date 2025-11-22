@@ -1,7 +1,7 @@
 using Elearn.Infrastructure.Repository;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace Elearn.WebAPI.Middleware
+namespace Elearn.WebAPI.Middlewares
 {
     /// <summary>
     /// Middleware để kiểm tra token có trong blacklist không

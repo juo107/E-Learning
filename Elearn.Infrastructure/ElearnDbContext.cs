@@ -32,6 +32,7 @@ namespace Elearn.Infrastructure.Data
         public DbSet<Lecture> Lectures { get; set; }
         public DbSet<Resource> Resources { get; set; }
         public DbSet<Domain.Entities.Courses.LectureContent> LectureContents { get; set; }
+        public DbSet<CourseReview> CourseReviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -564,6 +565,51 @@ namespace Elearn.Infrastructure.Data
                 entity.HasIndex(lc => lc.LectureId);
                 entity.HasIndex(lc => new { lc.LectureId, lc.OrderIndex });
                 entity.HasIndex(lc => lc.BlockType);
+            });
+
+            // Configure CourseReview entity
+            modelBuilder.Entity<CourseReview>(entity =>
+            {
+                entity.HasKey(cr => cr.Id);
+                entity.Property(cr => cr.CourseId).IsRequired();
+                entity.Property(cr => cr.UserId).IsRequired().HasMaxLength(450);
+                entity.Property(cr => cr.Rating).IsRequired();
+                entity.Property(cr => cr.Comment).HasMaxLength(2000);
+                entity.Property(cr => cr.IsApproved).IsRequired().HasDefaultValue(false);
+                entity.Property(cr => cr.IsHidden).IsRequired().HasDefaultValue(false);
+                entity.Property(cr => cr.HelpfulCount).IsRequired().HasDefaultValue(0);
+
+                // Configure relationship with Course
+                entity.HasOne(cr => cr.Course)
+                    .WithMany(c => c.CourseReviews)
+                    .HasForeignKey(cr => cr.CourseId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Configure relationship with ApplicationUser
+                entity.HasOne(cr => cr.User)
+                    .WithMany()
+                    .HasForeignKey(cr => cr.UserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Indexes for performance
+                entity.HasIndex(cr => cr.CourseId);
+                entity.HasIndex(cr => cr.UserId);
+                entity.HasIndex(cr => new { cr.CourseId, cr.IsApproved, cr.IsHidden, cr.CreatedAt })
+                    .HasDatabaseName("IX_CourseReview_Course_Approved_Hidden_CreatedAt");
+                entity.HasIndex(cr => new { cr.UserId, cr.CourseId })
+                    .HasDatabaseName("IX_CourseReview_User_Course");
+                entity.HasIndex(cr => new { cr.CourseId, cr.Rating })
+                    .HasDatabaseName("IX_CourseReview_Course_Rating");
+                entity.HasIndex(cr => new { cr.IsApproved, cr.IsHidden, cr.CreatedAt })
+                    .HasDatabaseName("IX_CourseReview_Approved_Hidden_CreatedAt");
+                
+                // Unique constraint: một user chỉ có thể review một course một lần
+                entity.HasIndex(cr => new { cr.UserId, cr.CourseId })
+                    .IsUnique()
+                    .HasDatabaseName("IX_CourseReview_User_Course_Unique")
+                    .HasFilter("[IsDeleted] = 0");
             });
         }
     }

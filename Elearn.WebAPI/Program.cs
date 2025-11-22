@@ -3,7 +3,7 @@ using Elearn.Application.Validations;
 using Elearn.Infrastructure;
 using Elearn.Infrastructure.Data;
 using Elearn.Search;
-using Elearn.WebAPI.Middleware;
+using Elearn.WebAPI.Middlewares;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -75,7 +75,11 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // SystemSuperAdmin và ContentAdmin (quản lý nội dung)
+    options.AddPolicy("ContentAdminOnly", policy => policy.RequireRole("SystemSuperAdmin", "ContentAdmin"));
+});
 
 // Add CORS
 builder.Services.AddCors(options =>

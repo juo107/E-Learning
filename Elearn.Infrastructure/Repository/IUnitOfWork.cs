@@ -19,6 +19,7 @@ namespace Elearn.Infrastructure.Repository
         ILectureRepository Lectures { get; }
         IResourceRepository Resources { get; }
         ILectureContentRepository LectureContents { get; }
+        ICourseReviewRepository CourseReviews { get; }
         Task<int> CompleteAsync();
     }
 }

@@ -17,6 +17,8 @@ namespace Elearn.Application.Validations
             services.AddScoped<IValidator<Elearn.Application.DTOs.CourseMedia.UpdateCourseMediaDto>, UpdateCourseMediaValidator>();
             services.AddScoped<IValidator<Elearn.Application.DTOs.Auth.RegisterDto>, RegisterDtoValidator>();
             services.AddScoped<IValidator<Elearn.Application.DTOs.Auth.LoginDto>, LoginDtoValidator>();
+            services.AddScoped<IValidator<Elearn.Application.DTOs.CourseReview.CreateCourseReviewDto>, CreateCourseReviewValidator>();
+            services.AddScoped<IValidator<Elearn.Application.DTOs.CourseReview.UpdateCourseReviewDto>, UpdateCourseReviewValidator>();
 
             return services;
         }

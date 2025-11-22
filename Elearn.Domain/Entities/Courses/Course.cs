@@ -39,6 +39,9 @@ namespace Elearn.Domain.Entities
         
         // Navigation property to Sections
         public ICollection<Section> Sections { get; set; } = new List<Section>();
+        
+        // Navigation property to CourseReviews
+        public ICollection<CourseReview> CourseReviews { get; set; } = new List<CourseReview>();
     }
 }
 

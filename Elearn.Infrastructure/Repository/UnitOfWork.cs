@@ -23,6 +23,7 @@ namespace Elearn.Infrastructure.Repository
         public ILectureRepository Lectures { get; }
         public IResourceRepository Resources { get; }
         public ILectureContentRepository LectureContents { get; }
+        public ICourseReviewRepository CourseReviews { get; }
 
         public UnitOfWork(ElearnDbContext context, ReadDbContext readContext)
         {
@@ -42,6 +43,7 @@ namespace Elearn.Infrastructure.Repository
             Lectures = new LectureRepository(_context);
             Resources = new ResourceRepository(_context);
             LectureContents = new LectureContentRepository(_context);
+            CourseReviews = new CourseReviewRepository(_context);
         }
 
         public async Task<int> CompleteAsync()

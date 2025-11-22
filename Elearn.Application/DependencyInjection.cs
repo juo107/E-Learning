@@ -24,6 +24,7 @@ namespace Elearn.Application
             services.AddScoped<ILectureService, Elearn.Application.Services.Implementations.LectureService>();
             services.AddScoped<IResourceService, Elearn.Application.Services.Implementations.ResourceService>();
             services.AddScoped<ILectureContentService, Elearn.Application.Services.Implementations.LectureContentService>();
+            services.AddScoped<ICourseReviewService, Elearn.Application.Services.Implementations.CourseReviewService>();
             
             // Đăng ký validators
             services.AddValidators();
