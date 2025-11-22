@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Admin.Controllers
 {
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "TenantAdminOnly")]
     public class AdminPromotionController : BaseAdminController<AdminPromotionController>
     {
         private readonly IPromotionService _promotionService;

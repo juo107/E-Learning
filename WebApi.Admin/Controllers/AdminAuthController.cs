@@ -29,7 +29,7 @@ namespace WebApi.Admin.Controllers
                 var result = await _authService.LoginAsync(loginDto);
 
                 // Verify user has admin role
-                if (result.Role != "Admin" && result.Role != "SystemSuperAdmin")
+                if (result.Role != "SystemSuperAdmin" && result.Role != "TenantAdmin" && result.Role != "ContentAdmin")
                 {
                     return BadRequest(BaseResponse<AuthResponseDto>.Fail("Access denied. Admin privileges required."));
                 }
@@ -51,10 +51,10 @@ namespace WebApi.Admin.Controllers
         {
             try
             {
-                // Only allow Admin and SystemSuperAdmin roles for admin portal registration
-                if (registerDto.Role != "Admin" && registerDto.Role != "SystemSuperAdmin")
+                // Only allow admin roles for admin portal registration
+                if (registerDto.Role != "SystemSuperAdmin" && registerDto.Role != "TenantAdmin" && registerDto.Role != "ContentAdmin")
                 {
-                    return BadRequest(BaseResponse<AuthResponseDto>.Fail("Only Admin and SystemSuperAdmin roles are allowed for admin portal registration."));
+                    return BadRequest(BaseResponse<AuthResponseDto>.Fail("Only SystemSuperAdmin, TenantAdmin, and ContentAdmin roles are allowed for admin portal registration."));
                 }
 
                 var result = await _authService.RegisterAsync(registerDto);

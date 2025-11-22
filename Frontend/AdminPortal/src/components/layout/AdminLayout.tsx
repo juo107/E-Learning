@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import { isTenantAdmin, isContentAdmin, isSuperAdmin, getUserRole } from '../../utils/auth';
 import {
   LayoutDashboard,
   BookOpen,
@@ -195,8 +196,38 @@ export default function AdminLayout() {
     },
   ];
 
+  // Filter nav items based on user role
+  const userRole = getUserRole();
+  const filteredNavItems = navItems.filter(item => {
+    // SystemSuperAdmin sees everything
+    if (isSuperAdmin()) return true;
+    
+    // ContentAdmin only sees content management
+    if (isContentAdmin()) {
+      return item.path === '/dashboard' || 
+             item.path === '/courses' || 
+             item.path === '/sections' || 
+             item.path === '/lectures' || 
+             item.path === '/resources';
+    }
+    
+    // TenantAdmin sees users, content, categories, promotions
+    if (isTenantAdmin()) {
+      return item.path === '/dashboard' ||
+             item.path === '/users' ||
+             item.path === '/courses' ||
+             item.path === '/sections' ||
+             item.path === '/lectures' ||
+             item.path === '/resources' ||
+             item.path === '/categories' ||
+             item.path === '/promotions';
+    }
+    
+    return false;
+  });
+
   // Group items by section
-  const groupedItems = navItems.reduce((acc, item) => {
+  const groupedItems = filteredNavItems.reduce((acc, item) => {
     const section = item.section || 'other';
     if (!acc[section]) acc[section] = [];
     acc[section].push(item);

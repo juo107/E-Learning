@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Admin.Controllers
 {
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "TenantAdminOnly")]
     public class AdminCategoryController : BaseAdminController<AdminCategoryController>
     {
         private readonly ICategoryService _categoryService;

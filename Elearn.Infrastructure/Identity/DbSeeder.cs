@@ -58,46 +58,89 @@ namespace Elearn.Infrastructure.Identity
             }
         }
 
-        public static async Task SeedAdminUserAsync(IServiceProvider serviceProvider)
+        public static async Task SeedTenantAdminUserAsync(IServiceProvider serviceProvider)
         {
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger("DbSeeder");
 
-            // Kiểm tra xem đã có admin user chưa
-            var adminEmail = "admin@elearn.com";
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+            // Kiểm tra xem đã có tenant admin user chưa
+            var tenantAdminEmail = "tenantadmin@elearn.com";
+            var tenantAdminUser = await userManager.FindByEmailAsync(tenantAdminEmail);
 
-            if (adminUser == null)
+            if (tenantAdminUser == null)
             {
-                adminUser = new ApplicationUser
+                tenantAdminUser = new ApplicationUser
                 {
-                    UserName = adminEmail,
-                    Email = adminEmail,
+                    UserName = tenantAdminEmail,
+                    Email = tenantAdminEmail,
                     EmailConfirmed = true,
-                    FullName = "System Administrator",
-                    UserType = SystemRole.Admin
+                    FullName = "Tenant Administrator",
+                    UserType = SystemRole.TenantAdmin
                 };
 
-                var result = await userManager.CreateAsync(adminUser, "Admin@123456");
+                var result = await userManager.CreateAsync(tenantAdminUser, "TenantAdmin@123456");
                 if (result.Succeeded)
                 {
-                    // Gán role Admin
-                    if (await userManager.IsInRoleAsync(adminUser, "Admin") == false)
+                    // Gán role TenantAdmin
+                    if (await userManager.IsInRoleAsync(tenantAdminUser, "TenantAdmin") == false)
                     {
-                        await userManager.AddToRoleAsync(adminUser, "Admin");
+                        await userManager.AddToRoleAsync(tenantAdminUser, "TenantAdmin");
                     }
-                    logger.LogInformation("Created admin user: {Email}", adminEmail);
+                    logger.LogInformation("Created tenant admin user: {Email}", tenantAdminEmail);
                 }
                 else
                 {
-                    logger.LogError("Failed to create admin user. Errors: {Errors}", 
+                    logger.LogError("Failed to create tenant admin user. Errors: {Errors}", 
                         string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
             }
             else
             {
-                logger.LogInformation("Admin user already exists: {Email}", adminEmail);
+                logger.LogInformation("Tenant admin user already exists: {Email}", tenantAdminEmail);
+            }
+        }
+
+        public static async Task SeedContentAdminUserAsync(IServiceProvider serviceProvider)
+        {
+            var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger("DbSeeder");
+
+            // Kiểm tra xem đã có content admin user chưa
+            var contentAdminEmail = "contentadmin@elearn.com";
+            var contentAdminUser = await userManager.FindByEmailAsync(contentAdminEmail);
+
+            if (contentAdminUser == null)
+            {
+                contentAdminUser = new ApplicationUser
+                {
+                    UserName = contentAdminEmail,
+                    Email = contentAdminEmail,
+                    EmailConfirmed = true,
+                    FullName = "Content Administrator",
+                    UserType = SystemRole.ContentAdmin
+                };
+
+                var result = await userManager.CreateAsync(contentAdminUser, "ContentAdmin@123456");
+                if (result.Succeeded)
+                {
+                    // Gán role ContentAdmin
+                    if (await userManager.IsInRoleAsync(contentAdminUser, "ContentAdmin") == false)
+                    {
+                        await userManager.AddToRoleAsync(contentAdminUser, "ContentAdmin");
+                    }
+                    logger.LogInformation("Created content admin user: {Email}", contentAdminEmail);
+                }
+                else
+                {
+                    logger.LogError("Failed to create content admin user. Errors: {Errors}", 
+                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+            }
+            else
+            {
+                logger.LogInformation("Content admin user already exists: {Email}", contentAdminEmail);
             }
         }
 
@@ -159,11 +202,10 @@ namespace Elearn.Infrastructure.Identity
                 // Seed permissions sau khi có roles
                 await PermissionSeeder.SeedPermissionsAsync(serviceProvider);
 
-                // Seed admin user sau (cần roles đã tồn tại)
-                await SeedAdminUserAsync(serviceProvider);
-                
-                // Seed super admin user
+                // Seed admin users sau (cần roles đã tồn tại)
                 await SeedSuperAdminUserAsync(serviceProvider);
+                await SeedTenantAdminUserAsync(serviceProvider);
+                await SeedContentAdminUserAsync(serviceProvider);
 
                 logger.LogInformation("Database seeding completed successfully.");
             }

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Admin.Controllers
 {
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "TenantAdminOnly")]
     public class AdminUserController : BaseAdminController<AdminUserController>
     {
         private readonly IUserService _userService;

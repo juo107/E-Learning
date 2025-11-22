@@ -43,7 +43,7 @@ export default function Login() {
         throw new Error('No token received');
       }
 
-      if (userRole !== 'Admin' && userRole !== 'SystemSuperAdmin') {
+      if (userRole !== 'SystemSuperAdmin' && userRole !== 'TenantAdmin' && userRole !== 'ContentAdmin') {
         throw new Error('Access denied. Admin privileges required.');
       }
 

@@ -74,8 +74,17 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin", "SystemSuperAdmin"));
+    // Tất cả admin roles (SystemSuperAdmin, TenantAdmin, ContentAdmin)
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("SystemSuperAdmin", "TenantAdmin", "ContentAdmin"));
+    
+    // Chỉ SystemSuperAdmin
     options.AddPolicy("SuperAdminOnly", policy => policy.RequireRole("SystemSuperAdmin"));
+    
+    // SystemSuperAdmin và TenantAdmin (quản lý users và business)
+    options.AddPolicy("TenantAdminOnly", policy => policy.RequireRole("SystemSuperAdmin", "TenantAdmin"));
+    
+    // SystemSuperAdmin và ContentAdmin (quản lý nội dung)
+    options.AddPolicy("ContentAdminOnly", policy => policy.RequireRole("SystemSuperAdmin", "ContentAdmin"));
 });
 
 // Add CORS

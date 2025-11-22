@@ -24,8 +24,18 @@ export const isSuperAdmin = (): boolean => {
   return role === 'SystemSuperAdmin';
 };
 
+export const isTenantAdmin = (): boolean => {
+  const role = getUserRole();
+  return role === 'TenantAdmin' || role === 'SystemSuperAdmin';
+};
+
+export const isContentAdmin = (): boolean => {
+  const role = getUserRole();
+  return role === 'ContentAdmin' || role === 'SystemSuperAdmin';
+};
+
 export const isAdmin = (): boolean => {
   const role = getUserRole();
-  return role === 'Admin' || role === 'SystemSuperAdmin';
+  return role === 'SystemSuperAdmin' || role === 'TenantAdmin' || role === 'ContentAdmin';
 };
 
