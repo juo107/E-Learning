@@ -271,6 +271,7 @@ export default function Users() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Users</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">Manage all users in the system</p>
+          <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">Note: System Super Admin users are excluded from this list</p>
         </div>
       </div>
 
@@ -313,7 +314,6 @@ export default function Users() {
               >
                 <option value="">All Roles</option>
                 <option value="Admin">Admin</option>
-                <option value="SystemSuperAdmin">System Super Admin</option>
                 <option value="Instructor">Instructor</option>
                 <option value="Student">Student</option>
               </select>
@@ -640,7 +640,6 @@ export default function Users() {
                   <option value="Student">Student</option>
                   <option value="Instructor">Instructor</option>
                   <option value="Admin">Admin</option>
-                  <option value="SystemSuperAdmin">System Super Admin</option>
                 </select>
               </div>
               <div className="flex items-center gap-4">
