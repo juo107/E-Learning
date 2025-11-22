@@ -76,7 +76,7 @@ namespace Elearn.Infrastructure.Identity
                     Email = adminEmail,
                     EmailConfirmed = true,
                     FullName = "System Administrator",
-                    UserType = SystemRole.SystemSuperAdmin
+                    UserType = SystemRole.Admin
                 };
 
                 var result = await userManager.CreateAsync(adminUser, "Admin@123456");
@@ -101,6 +101,49 @@ namespace Elearn.Infrastructure.Identity
             }
         }
 
+        public static async Task SeedSuperAdminUserAsync(IServiceProvider serviceProvider)
+        {
+            var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger("DbSeeder");
+
+            // Kiểm tra xem đã có super admin user chưa
+            var superAdminEmail = "superadmin@elearn.com";
+            var superAdminUser = await userManager.FindByEmailAsync(superAdminEmail);
+
+            if (superAdminUser == null)
+            {
+                superAdminUser = new ApplicationUser
+                {
+                    UserName = superAdminEmail,
+                    Email = superAdminEmail,
+                    EmailConfirmed = true,
+                    FullName = "System Super Administrator",
+                    UserType = SystemRole.SystemSuperAdmin
+                };
+
+                var result = await userManager.CreateAsync(superAdminUser, "SuperAdmin@123456");
+                if (result.Succeeded)
+                {
+                    // Gán role SystemSuperAdmin
+                    if (await userManager.IsInRoleAsync(superAdminUser, "SystemSuperAdmin") == false)
+                    {
+                        await userManager.AddToRoleAsync(superAdminUser, "SystemSuperAdmin");
+                    }
+                    logger.LogInformation("Created super admin user: {Email}", superAdminEmail);
+                }
+                else
+                {
+                    logger.LogError("Failed to create super admin user. Errors: {Errors}", 
+                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+            }
+            else
+            {
+                logger.LogInformation("Super admin user already exists: {Email}", superAdminEmail);
+            }
+        }
+
         public static async Task SeedAsync(IServiceProvider serviceProvider)
         {
             var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
@@ -118,6 +161,9 @@ namespace Elearn.Infrastructure.Identity
 
                 // Seed admin user sau (cần roles đã tồn tại)
                 await SeedAdminUserAsync(serviceProvider);
+                
+                // Seed super admin user
+                await SeedSuperAdminUserAsync(serviceProvider);
 
                 logger.LogInformation("Database seeding completed successfully.");
             }

@@ -75,6 +75,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin", "SystemSuperAdmin"));
+    options.AddPolicy("SuperAdminOnly", policy => policy.RequireRole("SystemSuperAdmin"));
 });
 
 // Add CORS
