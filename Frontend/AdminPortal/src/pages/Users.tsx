@@ -24,6 +24,7 @@ import {
   ResetPasswordDto,
 } from '../services/adminService';
 import { showToast } from '../components/ui/Toast';
+import { isSuperAdmin } from '../utils/auth';
 
 export default function Users() {
   const [users, setUsers] = useState<UserListDto[]>([]);
@@ -547,13 +548,15 @@ export default function Users() {
                         >
                           <Key className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => handleDeleteClick(user.id)}
-                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {isSuperAdmin() && (
+                          <button
+                            onClick={() => handleDeleteClick(user.id)}
+                            className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -628,20 +631,22 @@ export default function Users() {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Role
-                </label>
-                <select
-                  value={editFormData.role}
-                  onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                >
-                  <option value="Student">Student</option>
-                  <option value="Instructor">Instructor</option>
-                  <option value="Admin">Admin</option>
-                </select>
-              </div>
+              {isSuperAdmin() && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Role
+                  </label>
+                  <select
+                    value={editFormData.role}
+                    onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="Student">Student</option>
+                    <option value="Instructor">Instructor</option>
+                    <option value="Admin">Admin</option>
+                  </select>
+                </div>
+              )}
               <div className="flex items-center gap-4">
                 <label className="flex items-center gap-2">
                   <input
