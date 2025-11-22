@@ -78,6 +78,20 @@ namespace WebApi.Admin.Controllers
                 return BadRequest(BaseResponse<UserDetailsDto>.Fail(GetModelErrors()));
             }
 
+            // Check if current user is SuperAdmin
+            var currentUserRoles = User.Claims
+                .Where(c => c.Type == System.Security.Claims.ClaimTypes.Role)
+                .Select(c => c.Value)
+                .ToList();
+            
+            var isSuperAdmin = currentUserRoles.Contains("SystemSuperAdmin");
+            
+            // If not SuperAdmin, prevent role change
+            if (!isSuperAdmin && !string.IsNullOrEmpty(dto.Role))
+            {
+                return BadRequest(BaseResponse<UserDetailsDto>.Fail("Only SystemSuperAdmin can change user roles. Role update is not allowed."));
+            }
+
             var result = await _userService.UpdateUserAsync(id, dto);
             return HandleResponse(result);
         }
@@ -99,7 +113,6 @@ namespace WebApi.Admin.Controllers
 
         #region Lock
         [HttpPost("{id}/lock")]
-        [Authorize(Policy = "SuperAdminOnly")]
         [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -113,7 +126,6 @@ namespace WebApi.Admin.Controllers
 
         #region Unlock
         [HttpPost("{id}/unlock")]
-        [Authorize(Policy = "SuperAdminOnly")]
         [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -127,7 +139,6 @@ namespace WebApi.Admin.Controllers
 
         #region ResetPassword
         [HttpPost("{id}/reset-password")]
-        [Authorize(Policy = "SuperAdminOnly")]
         [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status404NotFound)]
